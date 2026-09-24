@@ -14,9 +14,9 @@ datasource db {
 
 enum Condition {
   NY
-  SOM_NY
+  PENT_BRUKT
   BRUKT
-  SLITT
+  GODT_BRUKT
 }
 
 enum ListingStatus {
