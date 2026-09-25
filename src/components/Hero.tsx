@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import ListingCard from "./ListingCard";
 
 type Mode = "kjop" | "selg";
 
@@ -222,26 +223,7 @@ export default function Hero() {
           }}
         >
           {results.map((r) => (
-            <div
-              key={r.id}
-              style={{ border: "1px solid #E9DCCB", background: "white" }}
-              className="rounded-xl p-4"
-            >
-              <p className="font-medium" style={{ color: "#3A2E22" }}>
-                {r.title}
-              </p>
-              <p className="text-sm" style={{ color: "#8A7A68" }}>
-                {r.brand} {r.model} · {r.condition}
-              </p>
-              <p className="mt-1" style={{ color: "#C4622E" }}>
-                {r.price}kr
-              </p>
-              {r.reason && (
-                <p className="text-xs mt-2" style={{ color: "#A69581" }}>
-                  {r.reason}
-                </p>
-              )}
-            </div>
+            <ListingCard key={r.id} listing={r} />
           ))}
         </div>
       </div>

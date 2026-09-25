@@ -20,9 +20,9 @@ Palett: kremhvit bunn, terrakotta som aksentfarge (varm, jordnær, IKKE identisk
 Prinsipp: bevegelse skal være knyttet til data (tall som teller opp, resultater som beregner seg), ikke pynt.
 Struktur: dynamisk hjemmeside (hero + scroll til resultater), enkle egne routes for annonsedetalj og opprett-annonse.
 
-## Etter Franz (ikke rør før onsdag er unnagjort)
+## Planlagt forbedring (mandag)
 
-Docker: lokal Postgres i docker-compose, senere dockerisert Next.js-app (output: standalone), CI/CD med Docker i GitHub Actions.
+Legge til batteryHealth (Int, prosent) på Listing. FINN og lignende markedsplasser mangler dette som strukturert felt, kun fritekst. Gir AI-søket noe ekte å filtrere på i stedet for å gjette fra beskrivelse.
 
 ## Kommandoer
 
