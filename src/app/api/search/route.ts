@@ -6,7 +6,11 @@ const anthropic = new Anthropic();
 
 function parseJson(text: string) {
   const cleaned = text.replace(/```json|```/g, "").trim();
-  return JSON.parse(cleaned);
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    return null;
+  }
 }
 
 export async function POST(req: Request) {
@@ -30,7 +34,8 @@ export async function POST(req: Request) {
   });
 
   const parseBlock = parseResponse.content[0];
-  const filters = parseBlock.type === "text" ? parseJson(parseBlock.text) : {};
+  const filters =
+    parseBlock.type === "text" ? (parseJson(parseBlock.text) ?? {}) : {};
 
   // Steg 2: query mot databasen basert på filtrene
   const listings = await prisma.listing.findMany({
@@ -74,7 +79,9 @@ export async function POST(req: Request) {
 
   const reasoningBlock = reasoningResponse.content[0];
   const reasons: { id: string; reason: string }[] =
-    reasoningBlock.type === "text" ? parseJson(reasoningBlock.text) : [];
+    reasoningBlock.type === "text"
+      ? (parseJson(reasoningBlock.text) ?? [])
+      : [];
 
   const results = listings.map((listing) => ({
     ...listing,

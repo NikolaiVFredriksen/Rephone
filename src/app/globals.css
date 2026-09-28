@@ -23,4 +23,10 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+
+  input,
+  textarea,
+  select {
+    color: #3a2e22;
+  }
 }
