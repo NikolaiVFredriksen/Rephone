@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import ListingCard from "./ListingCard";
+import GenerateDescription from "@/components/GenerateDescription";
 
 type Mode = "kjop" | "selg";
 
@@ -33,6 +34,16 @@ export default function Hero() {
     high: number;
     reasoning: string;
   } | null>(null);
+  const [images, setImages] = useState<File[]>([]);
+  const [draft, setDraft] = useState<{
+    brand: string;
+    model: string;
+    condition: string;
+    price: number;
+    description: string;
+    reasoning: string;
+  } | null>(null);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -62,7 +73,15 @@ export default function Hero() {
         });
         const data = await res.json();
         if (data.priceRange) {
-          setPriceSuggestion({ ...data.priceRange, reasoning: data.reasoning });
+          setDraft({
+            brand: data.parsed?.brand ?? "",
+            model: data.parsed?.model ?? "",
+            condition: data.parsed?.condition ?? "",
+            price: data.priceRange.low,
+            description: "",
+            reasoning: data.reasoning ?? "",
+          });
+          setStep(2);
         } else {
           setError(data.reasoning ?? "Fant ingen forslag");
         }
@@ -88,6 +107,11 @@ export default function Hero() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    setImages((prev) => [...prev, ...files].slice(0, 3));
   }
 
   return (
@@ -151,7 +175,7 @@ export default function Hero() {
               style={{ border: "1px solid #C4622E", color: "#C4622E" }}
               className="px-4 py-1.5 rounded-full text-sm"
             >
-              Se forslag
+              {mode === "kjop" ? "Se forslag" : "Se forslag til annonse"}
             </button>
             {mode === "kjop" && (
               <button
@@ -164,6 +188,48 @@ export default function Hero() {
               </button>
             )}
           </div>
+          {mode === "selg" && (
+            <div className="flex justify-center gap-3 mt-2 mb-4">
+              {[0, 1, 2].map((i) => (
+                <label
+                  key={i}
+                  style={{
+                    width: 72,
+                    height: 72,
+                    background: "white",
+                    border: "1px dashed #C9A98D",
+                    borderRadius: 12,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    color: "#C9A98D",
+                    fontSize: 24,
+                    overflow: "hidden",
+                  }}
+                >
+                  {images[i] ? (
+                    <img
+                      src={URL.createObjectURL(images[i])}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  ) : (
+                    "+"
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageUpload}
+                  />
+                </label>
+              ))}
+            </div>
+          )}
         </form>
       </div>
 
@@ -205,14 +271,133 @@ export default function Hero() {
           </div>
         )}
 
-        {priceSuggestion && (
-          <div className="text-center mb-8">
-            <p className="text-2xl" style={{ color: "#C4622E" }}>
-              {priceSuggestion.low}–{priceSuggestion.high}kr
-            </p>
-            <p style={{ color: "#8A7A68" }} className="text-sm mt-2">
-              {priceSuggestion.reasoning}
-            </p>
+        {mode === "selg" && step === 2 && draft && (
+          <div className="max-w-xl mx-auto mt-8">
+            <div
+              style={{
+                background: "white",
+                border: "1px solid #E9DCCB",
+                borderRadius: 16,
+                padding: 20,
+              }}
+            >
+              <p className="text-xs mb-4" style={{ color: "#8A7A68" }}>
+                AI-forslag, juster det som ikke stemmer
+              </p>
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                {[
+                  { label: "Merke", key: "brand" },
+                  { label: "Modell", key: "model" },
+                  { label: "Tilstand", key: "condition" },
+                  { label: "Pris (kr)", key: "price" },
+                ].map(({ label, key }) => (
+                  <div key={key}>
+                    <p className="text-xs mb-1" style={{ color: "#A69581" }}>
+                      {label}
+                    </p>
+                    <input
+                      value={String(draft[key as keyof typeof draft])}
+                      onChange={(e) =>
+                        setDraft((prev) =>
+                          prev ? { ...prev, [key]: e.target.value } : null,
+                        )
+                      }
+                      style={{
+                        border: "1px solid #E9DCCB",
+                        background: "#FBF7F0",
+                        borderRadius: 8,
+                        padding: "6px 10px",
+                        fontSize: 12,
+                        width: "100%",
+                        color: "#3A2E22",
+                      }}
+                    />
+                  </div>
+                ))}
+                <div>
+                  <p className="text-xs mb-1" style={{ color: "#A69581" }}>
+                    Lagring
+                  </p>
+                  <input
+                    placeholder="f.eks. 128GB"
+                    style={{
+                      border: "1px solid #E9DCCB",
+                      background: "#FBF7F0",
+                      borderRadius: 8,
+                      padding: "6px 10px",
+                      fontSize: 12,
+                      width: "100%",
+                      color: "#3A2E22",
+                    }}
+                  />
+                </div>
+                <div>
+                  <p className="text-xs mb-1" style={{ color: "#A69581" }}>
+                    Batterihelse
+                  </p>
+                  <input
+                    placeholder="f.eks. 91%"
+                    style={{
+                      border: "1px solid #E9DCCB",
+                      background: "#FBF7F0",
+                      borderRadius: 8,
+                      padding: "6px 10px",
+                      fontSize: 12,
+                      width: "100%",
+                      color: "#3A2E22",
+                    }}
+                  />
+                </div>
+              </div>
+              <div
+                style={{
+                  background: "#F3DCD1",
+                  borderRadius: 12,
+                  padding: 12,
+                  marginBottom: 16,
+                }}
+              >
+                <p className="text-xs" style={{ color: "#8A4A2E" }}>
+                  {draft.reasoning}
+                </p>
+                <p
+                  className="text-lg font-medium mt-1"
+                  style={{ color: "#C4622E" }}
+                >
+                  {draft.price.toLocaleString("no")} kr
+                </p>
+              </div>
+              <button
+                onClick={() => setStep(3)}
+                style={{ background: "#C4622E", color: "#FBF7F0" }}
+                className="w-full rounded-full py-2.5 text-sm"
+              >
+                Fortsett
+              </button>
+            </div>
+          </div>
+        )}
+
+        {mode === "selg" && step === 3 && draft && (
+          <div className="max-w-xl mx-auto mt-8">
+            <div
+              style={{
+                background: "white",
+                border: "1px solid #E9DCCB",
+                borderRadius: 16,
+                padding: 20,
+              }}
+            >
+              <GenerateDescription
+                draft={draft}
+                onPublish={() => {
+                  setStep(1);
+                  setDraft(null);
+                  setInput("");
+                  setImages([]);
+                }}
+              />
+            </div>
           </div>
         )}
 
