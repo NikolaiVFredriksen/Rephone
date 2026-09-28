@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-type Listing = {
+export type Listing = {
   id: string;
   title: string;
   brand: string;

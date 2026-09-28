@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import ModeToggle from "./ModeToggle";
-import BuyFlow from "./BuyFlow";
-import SellFlow from "./SellFlow";
+import BuySellToggle from "./shared/BuySellToggle";
+import BuyFlow from "./buy/BuyFlow";
+import SellFlow from "./sell/SellFlow";
 
 type Mode = "kjop" | "selg";
 
@@ -24,7 +24,7 @@ export default function HomeContent() {
         </a>
       </div>
 
-      <ModeToggle mode={mode} onChange={setMode} />
+      <BuySellToggle mode={mode} onChange={setMode} />
 
       {mode === "kjop" ? <BuyFlow /> : <SellFlow />}
     </main>
