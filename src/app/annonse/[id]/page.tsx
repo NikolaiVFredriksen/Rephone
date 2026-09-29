@@ -44,17 +44,17 @@ export default async function AnnonsePage({
   ].filter(Boolean) as { label: string; value: string }[];
 
   return (
-    <main className="px-6 py-10">
-      <div className="max-w-md mx-auto">
+    <main className="px-6 py-12">
+      <div className="max-w-3xl mx-auto">
         <div
           style={{
             background: "white",
             border: "1px solid #E9DCCB",
             borderRadius: 24,
           }}
-          className="p-5"
+          className="p-8 flex gap-10"
         >
-          <div className="w-full aspect-[4/5] rounded-2xl overflow-hidden relative">
+          <div className="w-1/2 shrink-0 aspect-[4/5] rounded-2xl overflow-hidden relative">
             {listing.imageUrl ? (
               <img
                 src={listing.imageUrl}
@@ -71,52 +71,47 @@ export default async function AnnonsePage({
             )}
           </div>
 
-          <div className="mt-5">
+          <div className="flex-1 min-w-0 flex flex-col justify-center">
             <p className="text-sm" style={{ color: "#A69581" }}>
               {listing.brand}
             </p>
-            <div className="flex items-baseline justify-between gap-4 mt-0.5">
-              <h1
-                className="text-2xl font-bold leading-tight"
-                style={{ color: "#3A2E22" }}
-              >
-                {listing.model}
-              </h1>
-              <p
-                className="text-2xl font-bold shrink-0"
-                style={{ color: "#C4622E" }}
-              >
-                {listing.price.toLocaleString("no")}kr
-              </p>
+            <h1
+              className="text-3xl font-bold leading-tight mt-1"
+              style={{ color: "#3A2E22" }}
+            >
+              {listing.model}
+            </h1>
+            <p className="text-2xl font-bold mt-3" style={{ color: "#C4622E" }}>
+              {listing.price.toLocaleString("no")}kr
+            </p>
+
+            <div className="h-px my-6" style={{ background: "#E9DCCB" }} />
+
+            <div className="space-y-3">
+              {facts.map((f) => (
+                <div key={f.label} className="flex justify-between text-sm">
+                  <span style={{ color: "#8A7A68" }}>{f.label}</span>
+                  <span className="font-medium" style={{ color: "#3A2E22" }}>
+                    {f.value}
+                  </span>
+                </div>
+              ))}
             </div>
+
+            <div className="h-px my-6" style={{ background: "#E9DCCB" }} />
+
+            <p className="text-sm leading-relaxed" style={{ color: "#3A2E22" }}>
+              {listing.description}
+            </p>
+
+            <a
+              href={`mailto:${listing.seller.email}?subject=${encodeURIComponent("Interessert i " + listing.title)}`}
+              style={{ background: "#C4622E", color: "#FBF7F0" }}
+              className="block text-center mt-6 px-5 py-3 rounded-full text-sm font-medium"
+            >
+              Kontakt selger
+            </a>
           </div>
-
-          <div className="h-px my-5" style={{ background: "#E9DCCB" }} />
-
-          <div className="space-y-2.5">
-            {facts.map((f) => (
-              <div key={f.label} className="flex justify-between text-sm">
-                <span style={{ color: "#8A7A68" }}>{f.label}</span>
-                <span className="font-medium" style={{ color: "#3A2E22" }}>
-                  {f.value}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          <div className="h-px my-5" style={{ background: "#E9DCCB" }} />
-
-          <p className="text-sm leading-relaxed" style={{ color: "#3A2E22" }}>
-            {listing.description}
-          </p>
-
-          <a
-            href={`mailto:${listing.seller.email}?subject=${encodeURIComponent("Interessert i " + listing.title)}`}
-            style={{ background: "#C4622E", color: "#FBF7F0" }}
-            className="block text-center mt-6 px-5 py-3 rounded-full text-sm font-medium"
-          >
-            Kontakt selger
-          </a>
         </div>
       </div>
     </main>
