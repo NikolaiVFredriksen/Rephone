@@ -19,8 +19,17 @@ export async function POST(req: Request) {
     );
   }
 
-  const { title, brand, model, condition, price, description, imageUrl } =
-    await req.json();
+  const {
+    title,
+    brand,
+    model,
+    condition,
+    price,
+    description,
+    imageUrl,
+    batteryHealth,
+    storage,
+  } = await req.json();
 
   if (!title || !brand || !model || !condition || !price || !description) {
     return NextResponse.json({ error: "Mangler felt" }, { status: 400 });
@@ -35,6 +44,8 @@ export async function POST(req: Request) {
       price,
       description,
       imageUrl,
+      batteryHealth,
+      storage,
       sellerId: session.user.id,
     },
   });
