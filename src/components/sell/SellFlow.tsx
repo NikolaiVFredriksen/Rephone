@@ -20,7 +20,7 @@ export default function SellFlow() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [images, setImages] = useState<File[]>([]);
+  const [images, setImages] = useState<string[]>([]);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
@@ -120,7 +120,11 @@ export default function SellFlow() {
               padding: 20,
             }}
           >
-            <GenerateDescription draft={draft} onPublish={resetFlow} />
+            <GenerateDescription
+              draft={draft}
+              images={images}
+              onPublish={resetFlow}
+            />
           </div>
         </div>
       )}
