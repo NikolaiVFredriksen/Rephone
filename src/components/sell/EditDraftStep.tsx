@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 type Draft = {
   brand: string;
   model: string;
@@ -35,6 +37,43 @@ export default function EditDraftStep({
   onDraftChange,
   onContinue,
 }: EditDraftStepProps) {
+  const [adjusting, setAdjusting] = useState(false);
+
+  async function handleStorageChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const newStorage = e.target.value ? Number(e.target.value) : null;
+    onDraftChange({ ...draft, storage: newStorage });
+
+    if (!newStorage) return;
+
+    setAdjusting(true);
+    try {
+      const res = await fetch("/api/adjust-price", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          brand: draft.brand,
+          model: draft.model,
+          condition: draft.condition,
+          storage: newStorage,
+          batteryHealth: draft.batteryHealth,
+        }),
+      });
+      const data = await res.json();
+      if (data.price) {
+        onDraftChange({
+          ...draft,
+          storage: newStorage,
+          price: data.price,
+          reasoning: data.reasoning ?? draft.reasoning,
+        });
+      }
+    } catch {
+      // stille feil, beholder eksisterende pris
+    } finally {
+      setAdjusting(false);
+    }
+  }
+
   return (
     <div className="max-w-xl mx-auto mt-8">
       <div
@@ -142,12 +181,8 @@ export default function EditDraftStep({
             </p>
             <select
               value={draft.storage ?? ""}
-              onChange={(e) =>
-                onDraftChange({
-                  ...draft,
-                  storage: e.target.value ? Number(e.target.value) : null,
-                })
-              }
+              onChange={handleStorageChange}
+              disabled={adjusting}
               style={{
                 border: "1px solid #E9DCCB",
                 background: "#FBF7F0",
@@ -200,7 +235,7 @@ export default function EditDraftStep({
           }}
         >
           <p className="text-xs" style={{ color: "#8A4A2E" }}>
-            {draft.reasoning}
+            {adjusting ? "Oppdaterer prisforslag..." : draft.reasoning}
           </p>
           <p className="text-lg font-medium mt-1" style={{ color: "#C4622E" }}>
             {draft.price.toLocaleString("no")} kr
