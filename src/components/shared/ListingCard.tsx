@@ -20,61 +20,58 @@ const CONDITION_LABELS: Record<string, string> = {
   GODT_BRUKT: "Godt brukt",
 };
 
-function batteryLabel(health: number) {
-  if (health >= 90) return "Meget god batterihelse";
-  if (health >= 80) return "God batterihelse";
-  if (health >= 70) return "Grei batterihelse";
-  return "Svak batterihelse";
-}
-
 function storageLabel(gb: number) {
   return gb === 1024 ? "1TB" : `${gb}GB`;
 }
 
 export default function ListingCard({ listing }: { listing: Listing }) {
-  return (
-    <Link
-      href={`/annonse/${listing.id}`}
-      style={{ border: "1px solid #E9DCCB", background: "white" }}
-      className="rounded-xl p-4 block hover:opacity-90 transition"
-    >
-      {listing.imageUrl ? (
-        <img
-          src={listing.imageUrl}
-          alt={listing.title}
-          className="w-full h-32 object-cover rounded-lg mb-3"
-        />
-      ) : (
-        <div
-          style={{ background: "#F3DCD1", color: "#C4622E" }}
-          className="w-full h-32 rounded-lg mb-3 flex items-center justify-center text-2xl font-medium"
-        >
-          {listing.brand[0]}
-        </div>
-      )}
+  const details = [
+    CONDITION_LABELS[listing.condition] ?? listing.condition,
+    listing.storage && storageLabel(listing.storage),
+    listing.batteryHealth && `${listing.batteryHealth}%`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
-      <p className="font-medium" style={{ color: "#3A2E22" }}>
-        {listing.title}
+  return (
+    <Link href={`/annonse/${listing.id}`} className="block group">
+      <div
+        style={{
+          background: listing.imageUrl ? undefined : "#F3DCD1",
+        }}
+        className="w-full aspect-[4/5] rounded-xl overflow-hidden mb-2 relative"
+      >
+        {listing.imageUrl ? (
+          <img
+            src={listing.imageUrl}
+            alt={listing.title}
+            className="w-full h-full object-cover transition group-hover:scale-105"
+          />
+        ) : (
+          <div
+            style={{ color: "#C4622E" }}
+            className="w-full h-full flex items-center justify-center text-4xl font-medium"
+          >
+            {listing.brand[0]}
+          </div>
+        )}
+        <div
+          style={{ background: "white", color: "#3A2E22" }}
+          className="absolute bottom-2 left-2 px-2 py-1 rounded-full text-xs font-medium shadow"
+        >
+          {listing.price.toLocaleString("no")}kr
+        </div>
+      </div>
+
+      <p
+        className="text-sm font-bold leading-tight"
+        style={{ color: "#3A2E22" }}
+      >
+        {listing.model}
       </p>
-      <p className="text-sm" style={{ color: "#8A7A68" }}>
-        {listing.brand} {listing.model} ·{" "}
-        {CONDITION_LABELS[listing.condition] ?? listing.condition}
+      <p className="text-sm leading-tight mt-0.5" style={{ color: "#A69581" }}>
+        {details}
       </p>
-      {(listing.storage || listing.batteryHealth) && (
-        <p className="text-xs mt-1" style={{ color: "#A69581" }}>
-          {listing.storage && storageLabel(listing.storage)}
-          {listing.storage && listing.batteryHealth && " · "}
-          {listing.batteryHealth && `${listing.batteryHealth}% batterihelse`}
-        </p>
-      )}
-      <p className="mt-1" style={{ color: "#C4622E" }}>
-        {listing.price}kr
-      </p>
-      {listing.reason && (
-        <p className="text-xs mt-2" style={{ color: "#A69581" }}>
-          {listing.reason}
-        </p>
-      )}
     </Link>
   );
 }

@@ -6,7 +6,10 @@ export default async function Header() {
   const session = await auth();
 
   return (
-    <div className="w-full px-6 py-6">
+    <div
+      style={{ background: "#FBF7F0" }}
+      className="w-full px-6 py-6 sticky top-0 z-10"
+    >
       <div className="flex justify-between items-center max-w-3xl mx-auto">
         <Link
           href="/"
