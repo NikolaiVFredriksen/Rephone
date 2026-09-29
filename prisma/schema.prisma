@@ -49,3 +49,12 @@ model Listing {
   sellerId      String
   seller        User          @relation(fields: [sellerId], references: [id])
 }
+
+model ReferencePrice {
+  id            String    @id @default(cuid())
+  brand         String
+  model         String
+  condition     Condition
+  price         Int
+  updatedAt     DateTime  @updatedAt
+}

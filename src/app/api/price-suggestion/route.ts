@@ -4,6 +4,13 @@ import { prisma } from "@/lib/prisma";
 
 const anthropic = new Anthropic();
 
+const CONDITION_LABELS: Record<string, string> = {
+  NY: "ny",
+  PENT_BRUKT: "pent brukt",
+  BRUKT: "brukt",
+  GODT_BRUKT: "godt brukt",
+};
+
 function parseJson(text: string) {
   const cleaned = text.replace(/```json|```/g, "").trim();
   return JSON.parse(cleaned);
@@ -27,8 +34,8 @@ export async function POST(req: Request) {
   const parseBlock = parseResponse.content[0];
   const parsed = parseBlock.type === "text" ? parseJson(parseBlock.text) : {};
 
-  // Steg 2: hent lignende annonser fra databasen
-  const similar = await prisma.listing.findMany({
+  // Steg 2a: hent egne, aktive annonser som ligner
+  const similarListings = await prisma.listing.findMany({
     where: {
       status: "AKTIV",
       ...(parsed.brand
@@ -42,32 +49,56 @@ export async function POST(req: Request) {
     take: 5,
   });
 
-  // Ingen sammenligningsgrunnlag, ikke la AI-en gjette i blinde
-  if (similar.length === 0) {
+  // Steg 2b: hent referansepriser som ligner, uavhengig av om egne annonser finnes
+  const referencePrices = await prisma.referencePrice.findMany({
+    where: {
+      ...(parsed.brand
+        ? { brand: { equals: parsed.brand, mode: "insensitive" } }
+        : {}),
+      ...(parsed.model
+        ? { model: { contains: parsed.model, mode: "insensitive" } }
+        : {}),
+    },
+    take: 5,
+  });
+
+  // Ingen grunnlag i det hele tatt, verken egne annonser eller referansepriser
+  if (similarListings.length === 0 && referencePrices.length === 0) {
     return NextResponse.json({
       parsed,
       priceRange: null,
       reasoning:
-        "Fant ingen sammenlignbare annonser i databasen ennå, for tidlig å foreslå en pris.",
+        "Fant ingen sammenlignbare annonser eller referansepriser for denne modellen, for tidlig å foreslå en pris.",
     });
   }
 
-  // Kall 2: beskrivelse + lignende annonser -> prisintervall med begrunnelse
+  // Filtrer referansepriser til kun den tolkede tilstanden, hvis kjent
+  const relevantReferencePrices = parsed.condition
+    ? referencePrices.filter((r) => r.condition === parsed.condition)
+    : referencePrices;
+
+  // Kall 2: beskrivelse + egne annonser + referansepriser -> prisintervall med begrunnelse
   const suggestResponse = await anthropic.messages.create({
     model: "claude-haiku-4-5",
     max_tokens: 300,
     system:
-      "Du foreslår et prisintervall i norske kroner for en brukt telefon, basert på lignende annonser. Ta hensyn til batterihelse og lagringsstørrelse hvis oppgitt: lavere batterihelse (under 80%) trekker prisen ned, høyere lagring trekker prisen opp. Svar KUN med JSON: { low, high, reasoning } der reasoning er maks 20 ord på norsk.",
+      "Du foreslår et prisintervall i norske kroner for en brukt telefon, basert på lignende annonser og kjente referansepriser. Ta hensyn til batterihelse og lagringsstørrelse hvis oppgitt: lavere batterihelse (under 80%) trekker prisen ned, høyere lagring trekker prisen opp. Prioriter faktiske annonser i markedet over referansepriser hvis begge finnes. Bruk naturlig norsk i begrunnelsen (f.eks. 'pent brukt', 'godt brukt'), aldri tekniske koder som GODT_BRUKT. Svar KUN med JSON: { low, high, reasoning } der reasoning er maks 20 ord på norsk.",
     messages: [
       {
         role: "user",
-        content: `Beskrivelse av telefonen som skal selges: "${description}"\nTolket batterihelse: ${parsed.batteryHealth ?? "ikke oppgitt"}\nTolket lagring: ${parsed.storage ?? "ikke oppgitt"}GB\n\nLignende annonser i databasen:\n${JSON.stringify(
-          similar.map((l) => ({
+        content: `Beskrivelse av telefonen som skal selges: "${description}"\nTolket tilstand: ${parsed.condition ? (CONDITION_LABELS[parsed.condition] ?? parsed.condition) : "ikke oppgitt"}\nTolket batterihelse: ${parsed.batteryHealth ?? "ikke oppgitt"}\nTolket lagring: ${parsed.storage ?? "ikke oppgitt"}GB\n\nLignende annonser i markedet akkurat nå:\n${JSON.stringify(
+          similarListings.map((l) => ({
             model: l.model,
-            condition: l.condition,
+            condition: CONDITION_LABELS[l.condition] ?? l.condition,
             price: l.price,
             batteryHealth: l.batteryHealth,
             storage: l.storage,
+          })),
+        )}\n\nKjente referansepriser for denne modellen og tilstanden:\n${JSON.stringify(
+          relevantReferencePrices.map((r) => ({
+            model: r.model,
+            condition: CONDITION_LABELS[r.condition] ?? r.condition,
+            price: r.price,
           })),
         )}`,
       },

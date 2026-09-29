@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     messages: [
       {
         role: "user",
-        content: `Skriv en annonsetekst for: ${brand} ${model}, tilstand: ${condition}${details ? ", " + details : ""}, pris: ${price}kr`,
+        content: `Skriv en annonsetekst for: ${brand} ${model}, tilstand: ${condition}${details ? ", " + details : ""}`,
       },
     ],
   });

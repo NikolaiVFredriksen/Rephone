@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 type Draft = {
   brand: string;
   model: string;
@@ -35,6 +37,48 @@ export default function EditDraftStep({
   onDraftChange,
   onContinue,
 }: EditDraftStepProps) {
+  const [adjusting, setAdjusting] = useState(false);
+
+  async function refreshPrice(updated: Draft) {
+    if (!updated.brand || !updated.model || !updated.condition) return;
+
+    setAdjusting(true);
+    try {
+      const res = await fetch("/api/adjust-price", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          brand: updated.brand,
+          model: updated.model,
+          condition: updated.condition,
+          storage: updated.storage,
+          batteryHealth: updated.batteryHealth,
+        }),
+      });
+      const data = await res.json();
+      if (data.price) {
+        onDraftChange({
+          ...updated,
+          price: data.price,
+          reasoning: data.reasoning ?? updated.reasoning,
+        });
+      }
+    } catch {
+      // stille feil, beholder eksisterende pris
+    } finally {
+      setAdjusting(false);
+    }
+  }
+
+  function handleFieldChange(
+    field: keyof Draft,
+    value: string | number | null,
+  ) {
+    const updated = { ...draft, [field]: value };
+    onDraftChange(updated);
+    refreshPrice(updated);
+  }
+
   return (
     <div className="max-w-xl mx-auto mt-8">
       <div
@@ -58,6 +102,7 @@ export default function EditDraftStep({
               onChange={(e) =>
                 onDraftChange({ ...draft, brand: e.target.value })
               }
+              onBlur={() => refreshPrice(draft)}
               style={{
                 border: "1px solid #E9DCCB",
                 background: "#FBF7F0",
@@ -78,6 +123,7 @@ export default function EditDraftStep({
               onChange={(e) =>
                 onDraftChange({ ...draft, model: e.target.value })
               }
+              onBlur={() => refreshPrice(draft)}
               style={{
                 border: "1px solid #E9DCCB",
                 background: "#FBF7F0",
@@ -95,9 +141,8 @@ export default function EditDraftStep({
             </p>
             <select
               value={draft.condition}
-              onChange={(e) =>
-                onDraftChange({ ...draft, condition: e.target.value })
-              }
+              onChange={(e) => handleFieldChange("condition", e.target.value)}
+              disabled={adjusting}
               style={{
                 border: "1px solid #E9DCCB",
                 background: "#FBF7F0",
@@ -143,11 +188,12 @@ export default function EditDraftStep({
             <select
               value={draft.storage ?? ""}
               onChange={(e) =>
-                onDraftChange({
-                  ...draft,
-                  storage: e.target.value ? Number(e.target.value) : null,
-                })
+                handleFieldChange(
+                  "storage",
+                  e.target.value ? Number(e.target.value) : null,
+                )
               }
+              disabled={adjusting}
               style={{
                 border: "1px solid #E9DCCB",
                 background: "#FBF7F0",
@@ -179,6 +225,7 @@ export default function EditDraftStep({
                   batteryHealth: e.target.value ? Number(e.target.value) : null,
                 })
               }
+              onBlur={() => refreshPrice(draft)}
               style={{
                 border: "1px solid #E9DCCB",
                 background: "#FBF7F0",
@@ -200,7 +247,7 @@ export default function EditDraftStep({
           }}
         >
           <p className="text-xs" style={{ color: "#8A4A2E" }}>
-            {draft.reasoning}
+            {adjusting ? "Oppdaterer prisforslag..." : draft.reasoning}
           </p>
           <p className="text-lg font-medium mt-1" style={{ color: "#C4622E" }}>
             {draft.price.toLocaleString("no")} kr
