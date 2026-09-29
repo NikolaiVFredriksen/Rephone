@@ -39,6 +39,7 @@ export default function RegistrerPage() {
     }
 
     router.push("/");
+    router.refresh();
   }
 
   return (
