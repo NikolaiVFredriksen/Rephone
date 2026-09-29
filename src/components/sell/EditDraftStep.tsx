@@ -39,11 +39,8 @@ export default function EditDraftStep({
 }: EditDraftStepProps) {
   const [adjusting, setAdjusting] = useState(false);
 
-  async function handleStorageChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const newStorage = e.target.value ? Number(e.target.value) : null;
-    onDraftChange({ ...draft, storage: newStorage });
-
-    if (!newStorage) return;
+  async function refreshPrice(updated: Draft) {
+    if (!updated.brand || !updated.model || !updated.condition) return;
 
     setAdjusting(true);
     try {
@@ -51,20 +48,19 @@ export default function EditDraftStep({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          brand: draft.brand,
-          model: draft.model,
-          condition: draft.condition,
-          storage: newStorage,
-          batteryHealth: draft.batteryHealth,
+          brand: updated.brand,
+          model: updated.model,
+          condition: updated.condition,
+          storage: updated.storage,
+          batteryHealth: updated.batteryHealth,
         }),
       });
       const data = await res.json();
       if (data.price) {
         onDraftChange({
-          ...draft,
-          storage: newStorage,
+          ...updated,
           price: data.price,
-          reasoning: data.reasoning ?? draft.reasoning,
+          reasoning: data.reasoning ?? updated.reasoning,
         });
       }
     } catch {
@@ -72,6 +68,15 @@ export default function EditDraftStep({
     } finally {
       setAdjusting(false);
     }
+  }
+
+  function handleFieldChange(
+    field: keyof Draft,
+    value: string | number | null,
+  ) {
+    const updated = { ...draft, [field]: value };
+    onDraftChange(updated);
+    refreshPrice(updated);
   }
 
   return (
@@ -97,6 +102,7 @@ export default function EditDraftStep({
               onChange={(e) =>
                 onDraftChange({ ...draft, brand: e.target.value })
               }
+              onBlur={() => refreshPrice(draft)}
               style={{
                 border: "1px solid #E9DCCB",
                 background: "#FBF7F0",
@@ -117,6 +123,7 @@ export default function EditDraftStep({
               onChange={(e) =>
                 onDraftChange({ ...draft, model: e.target.value })
               }
+              onBlur={() => refreshPrice(draft)}
               style={{
                 border: "1px solid #E9DCCB",
                 background: "#FBF7F0",
@@ -134,9 +141,8 @@ export default function EditDraftStep({
             </p>
             <select
               value={draft.condition}
-              onChange={(e) =>
-                onDraftChange({ ...draft, condition: e.target.value })
-              }
+              onChange={(e) => handleFieldChange("condition", e.target.value)}
+              disabled={adjusting}
               style={{
                 border: "1px solid #E9DCCB",
                 background: "#FBF7F0",
@@ -181,7 +187,12 @@ export default function EditDraftStep({
             </p>
             <select
               value={draft.storage ?? ""}
-              onChange={handleStorageChange}
+              onChange={(e) =>
+                handleFieldChange(
+                  "storage",
+                  e.target.value ? Number(e.target.value) : null,
+                )
+              }
               disabled={adjusting}
               style={{
                 border: "1px solid #E9DCCB",
@@ -214,6 +225,7 @@ export default function EditDraftStep({
                   batteryHealth: e.target.value ? Number(e.target.value) : null,
                 })
               }
+              onBlur={() => refreshPrice(draft)}
               style={{
                 border: "1px solid #E9DCCB",
                 background: "#FBF7F0",

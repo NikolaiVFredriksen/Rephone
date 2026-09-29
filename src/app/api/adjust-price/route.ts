@@ -53,7 +53,7 @@ export async function POST(req: Request) {
     model: "claude-haiku-4-5",
     max_tokens: 300,
     system:
-      "Du foreslår et prisintervall i norske kroner for en brukt telefon, basert på lignende annonser og kjente referansepriser. Ta hensyn til batterihelse og lagringsstørrelse: lavere batterihelse (under 80%) trekker prisen ned, høyere lagring trekker prisen opp, vanligvis noen hundre kroner mer per steg (128GB->256GB->512GB->1TB). Bruk naturlig norsk i begrunnelsen, aldri tekniske koder. Svar KUN med JSON: { low, high, reasoning } der reasoning er maks 20 ord på norsk.",
+      "Du foreslår et prisintervall i norske kroner for en brukt telefon, basert på lignende annonser og kjente referansepriser. VIKTIG: lagring og batterihelse er allerede endret fra forrige forslag, prisen MÅ derfor endres tilsvarende, aldri returner samme low-verdi som ville vært riktig for en annen lagring/batterihelse. Konkret regel: høyere lagring enn forrige steg gir minst 300-800kr høyere pris, lavere batterihelse enn 80% gir minst 200-500kr lavere pris. Bruk naturlig norsk i begrunnelsen, aldri tekniske koder. Svar KUN med JSON: { low, high, reasoning } der reasoning er maks 20 ord på norsk.",
     messages: [
       {
         role: "user",
