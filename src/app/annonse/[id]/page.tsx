@@ -1,6 +1,17 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 
+const CONDITION_LABELS: Record<string, string> = {
+  NY: "Ny",
+  PENT_BRUKT: "Pent brukt",
+  BRUKT: "Brukt",
+  GODT_BRUKT: "Godt brukt",
+};
+
+function storageLabel(gb: number) {
+  return gb === 1024 ? "1TB" : `${gb}GB`;
+}
+
 export default async function AnnonsePage({
   params,
 }: {
@@ -42,8 +53,16 @@ export default async function AnnonsePage({
           {listing.title}
         </h1>
         <p className="text-sm mt-1" style={{ color: "#8A7A68" }}>
-          {listing.brand} {listing.model} · {listing.condition}
+          {listing.brand} {listing.model} ·{" "}
+          {CONDITION_LABELS[listing.condition] ?? listing.condition}
         </p>
+        {(listing.storage || listing.batteryHealth) && (
+          <p className="text-sm mt-1" style={{ color: "#8A7A68" }}>
+            {listing.storage && storageLabel(listing.storage)}
+            {listing.storage && listing.batteryHealth && " · "}
+            {listing.batteryHealth && `${listing.batteryHealth}% batterihelse`}
+          </p>
+        )}
         <p className="text-2xl mt-4" style={{ color: "#C4622E" }}>
           {listing.price}kr
         </p>

@@ -8,8 +8,28 @@ export type Listing = {
   condition: string;
   price: number;
   imageUrl?: string | null;
+  batteryHealth?: number | null;
+  storage?: number | null;
   reason?: string;
 };
+
+const CONDITION_LABELS: Record<string, string> = {
+  NY: "Ny",
+  PENT_BRUKT: "Pent brukt",
+  BRUKT: "Brukt",
+  GODT_BRUKT: "Godt brukt",
+};
+
+function batteryLabel(health: number) {
+  if (health >= 90) return "Meget god batterihelse";
+  if (health >= 80) return "God batterihelse";
+  if (health >= 70) return "Grei batterihelse";
+  return "Svak batterihelse";
+}
+
+function storageLabel(gb: number) {
+  return gb === 1024 ? "1TB" : `${gb}GB`;
+}
 
 export default function ListingCard({ listing }: { listing: Listing }) {
   return (
@@ -37,8 +57,16 @@ export default function ListingCard({ listing }: { listing: Listing }) {
         {listing.title}
       </p>
       <p className="text-sm" style={{ color: "#8A7A68" }}>
-        {listing.brand} {listing.model} · {listing.condition}
+        {listing.brand} {listing.model} ·{" "}
+        {CONDITION_LABELS[listing.condition] ?? listing.condition}
       </p>
+      {(listing.storage || listing.batteryHealth) && (
+        <p className="text-xs mt-1" style={{ color: "#A69581" }}>
+          {listing.storage && storageLabel(listing.storage)}
+          {listing.storage && listing.batteryHealth && " · "}
+          {listing.batteryHealth && `${listing.batteryHealth}% batterihelse`}
+        </p>
+      )}
       <p className="mt-1" style={{ color: "#C4622E" }}>
         {listing.price}kr
       </p>

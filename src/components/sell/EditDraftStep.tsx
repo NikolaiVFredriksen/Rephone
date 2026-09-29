@@ -1,3 +1,5 @@
+"use client";
+
 type Draft = {
   brand: string;
   model: string;
@@ -5,6 +7,8 @@ type Draft = {
   price: number;
   description: string;
   reasoning: string;
+  batteryHealth: number | null;
+  storage: number | null;
 };
 
 type EditDraftStepProps = {
@@ -12,6 +16,19 @@ type EditDraftStepProps = {
   onDraftChange: (draft: Draft) => void;
   onContinue: () => void;
 };
+
+const CONDITIONS = [
+  { value: "NY", label: "Ny" },
+  { value: "PENT_BRUKT", label: "Pent brukt" },
+  { value: "BRUKT", label: "Brukt" },
+  { value: "GODT_BRUKT", label: "Godt brukt" },
+];
+
+const STORAGE_OPTIONS = [64, 128, 256, 512, 1024];
+
+function storageLabel(gb: number) {
+  return gb === 1024 ? "1TB" : `${gb}GB`;
+}
 
 export default function EditDraftStep({
   draft,
@@ -32,39 +49,15 @@ export default function EditDraftStep({
           AI-forslag, juster det som ikke stemmer
         </p>
         <div className="grid grid-cols-2 gap-3 mb-4">
-          {[
-            { label: "Merke", key: "brand" },
-            { label: "Modell", key: "model" },
-            { label: "Tilstand", key: "condition" },
-            { label: "Pris (kr)", key: "price" },
-          ].map(({ label, key }) => (
-            <div key={key}>
-              <p className="text-xs mb-1" style={{ color: "#A69581" }}>
-                {label}
-              </p>
-              <input
-                value={String(draft[key as keyof typeof draft])}
-                onChange={(e) =>
-                  onDraftChange({ ...draft, [key]: e.target.value })
-                }
-                style={{
-                  border: "1px solid #E9DCCB",
-                  background: "#FBF7F0",
-                  borderRadius: 8,
-                  padding: "6px 10px",
-                  fontSize: 12,
-                  width: "100%",
-                  color: "#3A2E22",
-                }}
-              />
-            </div>
-          ))}
           <div>
             <p className="text-xs mb-1" style={{ color: "#A69581" }}>
-              Lagring
+              Merke
             </p>
             <input
-              placeholder="f.eks. 128GB"
+              value={draft.brand}
+              onChange={(e) =>
+                onDraftChange({ ...draft, brand: e.target.value })
+              }
               style={{
                 border: "1px solid #E9DCCB",
                 background: "#FBF7F0",
@@ -78,10 +71,114 @@ export default function EditDraftStep({
           </div>
           <div>
             <p className="text-xs mb-1" style={{ color: "#A69581" }}>
-              Batterihelse
+              Modell
             </p>
             <input
-              placeholder="f.eks. 91%"
+              value={draft.model}
+              onChange={(e) =>
+                onDraftChange({ ...draft, model: e.target.value })
+              }
+              style={{
+                border: "1px solid #E9DCCB",
+                background: "#FBF7F0",
+                borderRadius: 8,
+                padding: "6px 10px",
+                fontSize: 12,
+                width: "100%",
+                color: "#3A2E22",
+              }}
+            />
+          </div>
+          <div>
+            <p className="text-xs mb-1" style={{ color: "#A69581" }}>
+              Tilstand
+            </p>
+            <select
+              value={draft.condition}
+              onChange={(e) =>
+                onDraftChange({ ...draft, condition: e.target.value })
+              }
+              style={{
+                border: "1px solid #E9DCCB",
+                background: "#FBF7F0",
+                borderRadius: 8,
+                padding: "6px 10px",
+                fontSize: 12,
+                width: "100%",
+                color: "#3A2E22",
+              }}
+            >
+              <option value="">Velg tilstand</option>
+              {CONDITIONS.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <p className="text-xs mb-1" style={{ color: "#A69581" }}>
+              Pris (kr)
+            </p>
+            <input
+              value={String(draft.price)}
+              onChange={(e) =>
+                onDraftChange({ ...draft, price: Number(e.target.value) })
+              }
+              style={{
+                border: "1px solid #E9DCCB",
+                background: "#FBF7F0",
+                borderRadius: 8,
+                padding: "6px 10px",
+                fontSize: 12,
+                width: "100%",
+                color: "#3A2E22",
+              }}
+            />
+          </div>
+          <div>
+            <p className="text-xs mb-1" style={{ color: "#A69581" }}>
+              Lagring
+            </p>
+            <select
+              value={draft.storage ?? ""}
+              onChange={(e) =>
+                onDraftChange({
+                  ...draft,
+                  storage: e.target.value ? Number(e.target.value) : null,
+                })
+              }
+              style={{
+                border: "1px solid #E9DCCB",
+                background: "#FBF7F0",
+                borderRadius: 8,
+                padding: "6px 10px",
+                fontSize: 12,
+                width: "100%",
+                color: "#3A2E22",
+              }}
+            >
+              <option value="">Velg lagring</option>
+              {STORAGE_OPTIONS.map((gb) => (
+                <option key={gb} value={gb}>
+                  {storageLabel(gb)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <p className="text-xs mb-1" style={{ color: "#A69581" }}>
+              Batterihelse (%)
+            </p>
+            <input
+              placeholder="f.eks. 91"
+              value={draft.batteryHealth ?? ""}
+              onChange={(e) =>
+                onDraftChange({
+                  ...draft,
+                  batteryHealth: e.target.value ? Number(e.target.value) : null,
+                })
+              }
               style={{
                 border: "1px solid #E9DCCB",
                 background: "#FBF7F0",

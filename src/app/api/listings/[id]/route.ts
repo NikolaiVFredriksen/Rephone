@@ -52,6 +52,8 @@ export async function PATCH(
     description,
     imageUrl,
     status,
+    batteryHealth,
+    storage,
   } = body;
 
   const updated = await prisma.listing.update({
@@ -65,6 +67,8 @@ export async function PATCH(
       description,
       imageUrl,
       status,
+      batteryHealth,
+      storage,
     },
   });
 
