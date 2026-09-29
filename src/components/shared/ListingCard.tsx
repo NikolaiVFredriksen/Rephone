@@ -64,7 +64,7 @@ export default function ListingCard({ listing }: { listing: Listing }) {
         <p className="text-xs mt-1" style={{ color: "#A69581" }}>
           {listing.storage && storageLabel(listing.storage)}
           {listing.storage && listing.batteryHealth && " · "}
-          {listing.batteryHealth && batteryLabel(listing.batteryHealth)}
+          {listing.batteryHealth && `${listing.batteryHealth}% batterihelse`}
         </p>
       )}
       <p className="mt-1" style={{ color: "#C4622E" }}>
