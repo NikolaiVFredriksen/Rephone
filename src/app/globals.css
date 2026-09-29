@@ -30,3 +30,7 @@ body {
     color: #3a2e22;
   }
 }
+
+button {
+  cursor: pointer;
+}
