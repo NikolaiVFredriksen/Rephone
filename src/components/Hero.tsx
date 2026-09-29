@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import ListingCard from "./ListingCard";
-import GenerateDescription from "@/components/GenerateDescription";
+import ListingCard from "./shared/ListingCard";
+import GenerateDescription from "@/components/sell/GenerateDescription";
 
 type Mode = "kjop" | "selg";
 
