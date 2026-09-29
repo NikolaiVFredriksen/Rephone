@@ -50,7 +50,7 @@ export default function BuyFlow() {
     try {
       const res = await fetch("/api/listings");
       const data = await res.json();
-      setResults(data.slice(0, 6));
+      setResults(data.slice(0, 9));
     } catch {
       setError("Noe gikk galt, prøv igjen");
     } finally {
