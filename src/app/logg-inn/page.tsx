@@ -24,6 +24,7 @@ export default function LoggInnPage() {
       return;
     }
     router.push("/");
+    router.refresh();
   }
 
   return (
