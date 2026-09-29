@@ -24,11 +24,11 @@ export async function POST(req: Request) {
     model: "claude-sonnet-4-6",
     max_tokens: 300,
     system:
-      "Du tolker norske fritekst-søk etter brukte telefoner til JSON. Svar KUN med JSON, ingen annen tekst.",
+      'Du tolker norske fritekst-søk etter brukte telefoner til JSON. Svar KUN med JSON, ingen annen tekst. Felt: budget (maks pris i kr, tall eller null), brand ("Apple", "Samsung" osv, eller null), minBatteryHealth (minimum batterihelse i prosent hvis nevnt, f.eks "over 80%" eller "minst 80% batteri" gir 80, ellers null), minStorage (minimum lagring i GB hvis nevnt, f.eks "minst 256GB" gir 256, ellers null), priorities (liste med andre stikkord som ikke fanges av feltene over, f.eks ["kamera", "skjerm"]).',
     messages: [
       {
         role: "user",
-        content: `Tolk søket til JSON med feltene: budget (tall eller null), brand ("Apple", "Samsung" osv, eller null), priorities (liste med strenger, f.eks ["batteri", "kamera"]).\n\nSøk: "${query}"`,
+        content: `Tolk søket til JSON.\n\nSøk: "${query}"`,
       },
     ],
   });
@@ -45,6 +45,10 @@ export async function POST(req: Request) {
       ...(filters.brand
         ? { brand: { equals: filters.brand, mode: "insensitive" } }
         : {}),
+      ...(filters.minBatteryHealth
+        ? { batteryHealth: { gte: filters.minBatteryHealth } }
+        : {}),
+      ...(filters.minStorage ? { storage: { gte: filters.minStorage } } : {}),
     },
     orderBy: { createdAt: "desc" },
     take: 10,
@@ -71,6 +75,8 @@ export async function POST(req: Request) {
             model: l.model,
             price: l.price,
             condition: l.condition,
+            batteryHealth: l.batteryHealth,
+            storage: l.storage,
           })),
         )}`,
       },
