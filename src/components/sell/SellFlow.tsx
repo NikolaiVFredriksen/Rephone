@@ -12,6 +12,8 @@ type Draft = {
   price: number;
   description: string;
   reasoning: string;
+  batteryHealth: number | null;
+  storage: number | null;
 };
 
 export default function SellFlow() {
@@ -44,6 +46,8 @@ export default function SellFlow() {
           price: data.priceRange.low,
           description: "",
           reasoning: data.reasoning ?? "",
+          batteryHealth: data.parsed?.batteryHealth ?? null,
+          storage: data.parsed?.storage ?? null,
         });
         setStep(2);
       } else {

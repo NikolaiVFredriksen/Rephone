@@ -10,6 +10,8 @@ type Draft = {
   price: number;
   description: string;
   reasoning: string;
+  batteryHealth: number | null;
+  storage: number | null;
 };
 
 export default function GenerateDescription({
@@ -33,6 +35,8 @@ export default function GenerateDescription({
         model: draft.model,
         condition: draft.condition,
         price: draft.price,
+        batteryHealth: draft.batteryHealth,
+        storage: draft.storage,
       }),
     });
     const data = await res.json();
@@ -51,6 +55,8 @@ export default function GenerateDescription({
         condition: draft.condition,
         price: Number(draft.price),
         description,
+        batteryHealth: draft.batteryHealth,
+        storage: draft.storage,
       }),
     });
     const listing = await res.json();
