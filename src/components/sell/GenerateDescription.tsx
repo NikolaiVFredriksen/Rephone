@@ -16,9 +16,11 @@ type Draft = {
 
 export default function GenerateDescription({
   draft,
+  images,
   onPublish,
 }: {
   draft: Draft;
+  images: string[];
   onPublish: () => void;
 }) {
   const router = useRouter();
@@ -57,6 +59,7 @@ export default function GenerateDescription({
         description,
         batteryHealth: draft.batteryHealth,
         storage: draft.storage,
+        imageUrl: images[0] ?? null,
       }),
     });
     const listing = await res.json();

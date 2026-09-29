@@ -1,15 +1,38 @@
+"use client";
+
+import { useState } from "react";
+
 type ImageUploaderProps = {
-  images: File[];
-  onImagesChange: (images: File[]) => void;
+  images: string[];
+  onImagesChange: (images: string[]) => void;
 };
 
 export default function ImageUploader({
   images,
   onImagesChange,
 }: ImageUploaderProps) {
-  function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files ?? []);
-    onImagesChange([...images, ...files].slice(0, 3));
+  const [uploading, setUploading] = useState(false);
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+    setUploading(false);
+
+    if (data.url) {
+      onImagesChange([...images, data.url].slice(0, 3));
+    }
   }
 
   return (
@@ -34,13 +57,15 @@ export default function ImageUploader({
         >
           {images[i] ? (
             <img
-              src={URL.createObjectURL(images[i])}
+              src={images[i]}
               style={{
                 width: "100%",
                 height: "100%",
                 objectFit: "cover",
               }}
             />
+          ) : uploading ? (
+            "..."
           ) : (
             "+"
           )}
