@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
@@ -25,6 +26,46 @@ const referencePrices = [
     price: 1000,
   },
 
+  // iPhone 11 Pro
+  {
+    brand: "Apple",
+    model: "iPhone 11 Pro",
+    condition: "PENT_BRUKT" as const,
+    price: 2400,
+  },
+  {
+    brand: "Apple",
+    model: "iPhone 11 Pro",
+    condition: "BRUKT" as const,
+    price: 1900,
+  },
+  {
+    brand: "Apple",
+    model: "iPhone 11 Pro",
+    condition: "GODT_BRUKT" as const,
+    price: 1400,
+  },
+
+  // iPhone 11 Pro Max
+  {
+    brand: "Apple",
+    model: "iPhone 11 Pro Max",
+    condition: "PENT_BRUKT" as const,
+    price: 2700,
+  },
+  {
+    brand: "Apple",
+    model: "iPhone 11 Pro Max",
+    condition: "BRUKT" as const,
+    price: 2200,
+  },
+  {
+    brand: "Apple",
+    model: "iPhone 11 Pro Max",
+    condition: "GODT_BRUKT" as const,
+    price: 1700,
+  },
+
   // iPhone 12
   {
     brand: "Apple",
@@ -43,6 +84,46 @@ const referencePrices = [
     model: "iPhone 12",
     condition: "GODT_BRUKT" as const,
     price: 1500,
+  },
+
+  // iPhone 12 Pro
+  {
+    brand: "Apple",
+    model: "iPhone 12 Pro",
+    condition: "PENT_BRUKT" as const,
+    price: 3300,
+  },
+  {
+    brand: "Apple",
+    model: "iPhone 12 Pro",
+    condition: "BRUKT" as const,
+    price: 2700,
+  },
+  {
+    brand: "Apple",
+    model: "iPhone 12 Pro",
+    condition: "GODT_BRUKT" as const,
+    price: 2100,
+  },
+
+  // iPhone 12 Pro Max
+  {
+    brand: "Apple",
+    model: "iPhone 12 Pro Max",
+    condition: "PENT_BRUKT" as const,
+    price: 3600,
+  },
+  {
+    brand: "Apple",
+    model: "iPhone 12 Pro Max",
+    condition: "BRUKT" as const,
+    price: 3000,
+  },
+  {
+    brand: "Apple",
+    model: "iPhone 12 Pro Max",
+    condition: "GODT_BRUKT" as const,
+    price: 2400,
   },
 
   // iPhone 13
