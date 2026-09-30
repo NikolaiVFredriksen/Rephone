@@ -70,15 +70,17 @@ export default function SellFlow() {
   return (
     <div className="max-w-3xl mx-auto mt-12">
       {step === 1 && (
-        <div className="max-w-xl mx-auto text-center">
+        <div className="w-full max-w-2xl mx-auto text-center">
           <form onSubmit={handleSubmit}>
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="...beskriv telefonen din"
               style={{ border: "1px solid #E9DCCB", background: "white" }}
-              className="w-full rounded-full px-6 py-3 text-sm outline-none mb-4"
+              className="w-full rounded-full px-6 py-4 text-sm outline-none mb-4"
             />
+
+            <ImageUploader images={images} onImagesChange={setImages} />
 
             <div className="flex gap-2 justify-center">
               <button
@@ -89,8 +91,6 @@ export default function SellFlow() {
                 Se forslag til annonse
               </button>
             </div>
-
-            <ImageUploader images={images} onImagesChange={setImages} />
           </form>
         </div>
       )}

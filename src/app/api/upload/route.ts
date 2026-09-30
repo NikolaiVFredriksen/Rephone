@@ -18,13 +18,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Mangler fil" }, { status: 400 });
   }
 
-  const blob = await put(
-    `listings/${session.user.id}-${Date.now()}-${file.name}`,
-    file,
-    {
-      access: "public",
-    },
-  );
+  try {
+    const blob = await put(
+      `listings/${session.user.id}-${Date.now()}-${file.name}`,
+      file,
+      {
+        access: "public",
+      },
+    );
 
-  return NextResponse.json({ url: blob.url });
+    return NextResponse.json({ url: blob.url });
+  } catch (err) {
+    console.error("Blob upload failed:", err);
+    return NextResponse.json(
+      { error: "Opplasting feilet, prøv igjen" },
+      { status: 500 },
+    );
+  }
 }
