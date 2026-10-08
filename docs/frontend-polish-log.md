@@ -40,6 +40,17 @@ Fant ikke et reelt venstreforskyvnings-bug ved manuell gjennomgang i Chrome (128
 
 **Sjekk visuelt (lokalt):** Lokal API-respons er for rask til at jeg fikk fanget skjelett-tilstanden i et skjermbilde (og mitt forsøk på å forsinke `fetch` via konsollen traff ikke sidens egen `fetch`, trolig isolert JS-kontekst). Koden er bygget til å vise skjelett-kort automatisk mens `loading` er sann — sjekk gjerne selv med nettverksdrossling i DevTools (Network → Slow 3G) på "Våre anbefalinger"/"Se forslag", og at EditDraftStep-spinneren vises kort når du endrer tilstand/lagring/batteri (utløser `/api/adjust-price`).
 
+### 3. Overganger — ferdig
+
+- Ny delt `fade-in-up`-animasjon i `globals.css` (keyframes + `--enter-delay`-variabel for stagger), fanget opp av den globale `prefers-reduced-motion`-regelen fra oppgave 1.
+- `ResultsGrid.tsx`: hvert kort får `fade-in-up` med 40ms stagger (kappet ved 11 kort, så haleforsinkelsen ikke blir unødvendig lang med mange resultater).
+- `SellFlow.tsx`/`EditDraftStep.tsx`: steg 1/2/3-boksene får `fade-in-up` ved mount, altså en myk overgang hver gang `step` endres (ingen ny state, bare klasse på de eksisterende wrapper-divene).
+- `ListingCard.tsx`: lagt til fokus-synlig ring (var helt usynlig for tastaturbrukere før) og roligere easing/durasjon på det eksisterende hover-zoom-bildet. Ikke endret selve hover-zoom-designet.
+- Hover/fokus lagt til på: `BuySellToggle`, knappene i `BuyFlow`/`SellFlow`/`GenerateDescription`/`EditDraftStep`, `ImageUploader`-slottene (pluss `focus-within` siden filinputen er skjult), og lenkene/knappen i `Header`. Måtte konvertere en god del knappefarger fra inline `style` til Tailwind-klasser samme sted som i oppgave 1, av samme årsak (inline style overstyrer `hover:`/`focus-visible:`).
+- La til en diskret `border-bottom: 1px solid #E9DCCB` på den sticky headeren (var helt uten kant før, så den "fløt" rett over innholdet ved scroll).
+
+**Sjekk visuelt (lokalt):** Verifisert i Chrome — stagger/fade på resultatkortene er godt synlig (fanget midt i animasjonen i et skjermbilde), og tastatur-fokus (Tab) viser nå en tydelig ring rundt kort og knapper. Sjekk gjerne selv at hover-tilstandene føles riktige (spesielt "Se forslag"-knappenes fargebytte og toggle-knappenes dashed-kant-hover), og at overgangen mellom steg 1→2→3 i salg-flyten ikke føles hakkete.
+
 ## Funn utenfor scope
 
 (fylles ut underveis)

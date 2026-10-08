@@ -70,7 +70,7 @@ export default function SellFlow() {
   return (
     <div className="w-full max-w-3xl mt-12">
       {step === 1 && (
-        <div className="w-full max-w-2xl mx-auto text-center">
+        <div className="w-full max-w-2xl mx-auto text-center fade-in-up">
           <form onSubmit={handleSubmit}>
             <input
               value={input}
@@ -115,7 +115,7 @@ export default function SellFlow() {
       )}
 
       {step === 3 && draft && (
-        <div className="max-w-xl mx-auto mt-8">
+        <div className="max-w-xl mx-auto mt-8 fade-in-up">
           <div
             style={{
               background: "white",

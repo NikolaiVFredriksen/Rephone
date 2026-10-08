@@ -81,7 +81,7 @@ export default function EditDraftStep({
   }
 
   return (
-    <div className="max-w-xl mx-auto mt-8">
+    <div className="max-w-xl mx-auto mt-8 fade-in-up">
       <div
         style={{
           background: "white",
@@ -268,8 +268,7 @@ export default function EditDraftStep({
         </div>
         <button
           onClick={onContinue}
-          style={{ background: "#C4622E", color: "#FBF7F0" }}
-          className="w-full rounded-full py-2.5 text-sm"
+          className="w-full rounded-full py-2.5 text-sm bg-[#C4622E] text-[#FBF7F0] transition-colors hover:bg-[#A8521F] outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
         >
           Fortsett
         </button>

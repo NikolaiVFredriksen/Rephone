@@ -75,14 +75,12 @@ export default function GenerateDescription({
         onClick={generateDescription}
         disabled={loading}
         style={{
-          border: "1px solid #C4622E",
-          color: "#C4622E",
-          background: "transparent",
           borderRadius: 20,
           padding: "6px 14px",
           fontSize: 11,
           marginBottom: 10,
         }}
+        className="border border-[#C4622E] text-[#C4622E] bg-transparent transition-colors hover:bg-[#C4622E] hover:text-[#FBF7F0] disabled:opacity-60 disabled:hover:bg-transparent disabled:hover:text-[#C4622E] outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
       >
         {loading ? "Genererer..." : "✦ Generer beskrivelse"}
       </button>
@@ -102,11 +100,11 @@ export default function GenerateDescription({
           resize: "none",
           marginBottom: 12,
         }}
+        className="transition-shadow outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E]"
       />
       <button
         onClick={publish}
-        style={{ background: "#C4622E", color: "#FBF7F0" }}
-        className="w-full rounded-full py-2.5 text-sm"
+        className="w-full rounded-full py-2.5 text-sm bg-[#C4622E] text-[#FBF7F0] transition-colors hover:bg-[#A8521F] outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
       >
         Publiser annonse
       </button>

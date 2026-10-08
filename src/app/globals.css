@@ -47,9 +47,28 @@ button {
   pointer-events: none;
 }
 
+/* Gjenbrukt fade/løft-inn-animasjon: resultatkort (med stagger via */
+/* --enter-delay) og steg-overganger i salg-flyten. */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fade-in-up 420ms ease both;
+  animation-delay: var(--enter-delay, 0ms);
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
   }
 }

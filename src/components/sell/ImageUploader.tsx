@@ -53,7 +53,6 @@ export default function ImageUploader({
               width: 72,
               height: 72,
               background: "white",
-              border: "1px dashed #C9A98D",
               borderRadius: 12,
               display: "flex",
               alignItems: "center",
@@ -63,6 +62,7 @@ export default function ImageUploader({
               fontSize: 24,
               overflow: "hidden",
             }}
+            className="border border-dashed border-[#C9A98D] transition-colors hover:border-[#C4622E] hover:text-[#C4622E] focus-within:ring-2 focus-within:ring-[#C4622E] focus-within:ring-offset-2 focus-within:ring-offset-[#FBF7F0]"
           >
             {images[i] ? (
               <img
