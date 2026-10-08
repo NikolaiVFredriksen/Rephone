@@ -51,6 +51,15 @@ Fant ikke et reelt venstreforskyvnings-bug ved manuell gjennomgang i Chrome (128
 
 **Sjekk visuelt (lokalt):** Verifisert i Chrome — stagger/fade på resultatkortene er godt synlig (fanget midt i animasjonen i et skjermbilde), og tastatur-fokus (Tab) viser nå en tydelig ring rundt kort og knapper. Sjekk gjerne selv at hover-tilstandene føles riktige (spesielt "Se forslag"-knappenes fargebytte og toggle-knappenes dashed-kant-hover), og at overgangen mellom steg 1→2→3 i salg-flyten ikke føles hakkete.
 
+### 4. Detaljsiden — ferdig
+
+- `annonse/[id]/page.tsx`: kortet stacker nå `flex-col` under `md:` (768px) og blir `md:flex-row` på større skjermer — bildet var fast `w-1/2` i en `flex gap-10` uten noen responsiv variant før, som ville gitt et veldig smalt bilde+infopanel på mobil (375px). Samme kort/samme "bilde + info i ett kort"-layout som før på desktop, kun stacking lagt til under 768px. Rørt kun JSX/klasser, ikke Prisma-spørringen.
+- Luft: litt mer padding (`p-6 sm:p-8 md:p-10` i stedet for fast `p-8`) og litt mer rom rundt skillelinjene (`my-6 md:my-7`) og over "Kontakt selger" (`mt-6` → `mt-7`).
+- Roligere hierarki: prisen gikk fra `font-bold` til `font-semibold` så den ikke konkurrerer visuelt med modellnavnet (fortsatt tydelig terrakotta-farget og størst etter overskriften). Beskrivelsesteksten har fått `max-w-md` så den ikke strekker seg unaturlig bredt på store skjermer.
+- La til hover/fokus på "Kontakt selger"-knappen (var helt uten tilstand før).
+
+**Sjekk visuelt (lokalt):** Fikk testet og bekreftet desktop-visningen i Chrome (bilde til venstre, info til høyre, luft/hierarki ser riktig ut). Fikk IKKE bekreftet 375px-stacking visuelt — nettleserverktøyet mitt klarte ikke å endre selve viewport-bredden i denne økten (kun vindusstørrelsen, som ikke slo igjennom til `window.innerWidth`). Sjekk gjerne selv med DevTools-responsivmodus på 375px at bildet havner over info-panelet og ikke blir klemt sammen i to smale kolonner.
+
 ## Funn utenfor scope
 
 (fylles ut underveis)
