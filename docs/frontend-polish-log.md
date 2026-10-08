@@ -77,6 +77,16 @@ Fant ikke et reelt venstreforskyvnings-bug ved manuell gjennomgang i Chrome (128
 
 **Sjekk visuelt (lokalt):** Bekreftet i Chrome — begge sidene viser nå et hvitt kort midt på siden med samme kantlinje/avrunding som resten av appen, feltene har krembakgrunn, og knappene har riktig farge/hover.
 
+### 7. Responsivitet — gjennomgått via kodegjennomgang
+
+Klarte ikke å endre selve nettleser-viewporten i denne Chrome-økten for å ta ekte skjermbilder på 375/768/1280px — `resize_window` endrer vindusstørrelsen, men `window.innerWidth` og skjermbildene forble uendret (testet gjentatte ganger, også med helt smale mål som 390px). Gjorde i stedet en systematisk kodegjennomgang av alle berørte filer:
+
+- Eneste responsive breakpoint-klasser i prosjektet (`sm:`/`md:`/`lg:`) er i `Hero.tsx` (tekststørrelse), `ResultsGrid(Skeleton).tsx` (kolonneantall) og detaljsiden (stacking/padding/gap) — alle lagt til/vurdert i tidligere oppgaver.
+- Eneste faste pikselbredde i hele det berørte kodeomfanget er `ImageUploader`s 72px-slots (3 stk + gap = 240px), som har god klaring selv på 375px (≈327px tilgjengelig bredde inni `main`s padding). Alt annet bruker `w-full`/`max-w-*`/`mx-auto`, som krymper gracefully.
+- `StepIndicator`, auth-kortene, `EditDraftStep`s grid og `FilterChips` sin `flex-wrap` ble sjekket for absolutt bredde opp mot 375px minus padding — ingen av dem har mer innhold enn det som har plass.
+
+**Sjekk visuelt (lokalt):** Dette er IKKE det samme som en ekte visuell test. Gå gjennom DevTools-responsivmodus (375px, 768px, 1280px) for forsiden (tom + med resultater, begge moduser), salg-flyten (alle tre steg), annonsedetalj, og /logg-inn + /registrer. Det jeg vil se spesielt nøye på: om hero-teksten bryter stygt på 375px, om detaljsidens bilde+info-stack ser riktig ut på 375px og at det IKKE stacker uønsket akkurat ved 768px (siden `md:`-grensen er nøyaktig der), og om StepIndicator/image-uploader-slottene får nok luft på 375px.
+
 ## Funn utenfor scope
 
 - `/registrer` mangler en lenke tilbake til `/logg-inn` ("Har du allerede en konto?"-type lenke), mens `/logg-inn` har en tilsvarende lenke til `/registrer`. Ikke fikset — det krever ny tekst som ikke står på den godkjente copy-listen, og er i grunn et innholds-/UX-gap, ikke ren styling.
