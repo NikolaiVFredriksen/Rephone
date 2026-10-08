@@ -68,16 +68,16 @@ export default function SellFlow() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto mt-12">
+    <div className="w-full max-w-3xl mt-12">
       {step === 1 && (
         <div className="w-full max-w-2xl mx-auto text-center">
           <form onSubmit={handleSubmit}>
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="...beskriv telefonen din"
+              placeholder="Hva vil du selge?"
               style={{ border: "1px solid #E9DCCB", background: "white" }}
-              className="w-full rounded-full px-6 py-4 text-sm outline-none mb-4"
+              className="w-full rounded-full px-6 py-4 text-sm outline-none mb-4 transition-shadow focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FBF7F0]"
             />
 
             <ImageUploader images={images} onImagesChange={setImages} />
@@ -85,8 +85,7 @@ export default function SellFlow() {
             <div className="flex gap-2 justify-center">
               <button
                 type="submit"
-                style={{ border: "1px solid #C4622E", color: "#C4622E" }}
-                className="px-4 py-1.5 rounded-full text-sm"
+                className="px-4 py-1.5 rounded-full text-sm border border-[#C4622E] text-[#C4622E] bg-transparent transition-colors hover:bg-[#C4622E] hover:text-[#FBF7F0] focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FBF7F0] outline-none"
               >
                 Se forslag til annonse
               </button>
@@ -96,7 +95,12 @@ export default function SellFlow() {
       )}
 
       {loading && (
-        <p style={{ color: "#8A7A68" }} className="text-center text-sm">
+        <p
+          style={{ color: "#8A7A68" }}
+          className="text-center text-sm"
+          role="status"
+          aria-live="polite"
+        >
           Henter...
         </p>
       )}

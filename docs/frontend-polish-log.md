@@ -15,7 +15,21 @@ Stack-notat: Tailwind v4 (`@import "tailwindcss"`), ingen framer-motion installe
 
 ## Status per oppgave
 
-(fylles ut underveis)
+### 1. Forsiden — ferdig
+
+Fant ikke et reelt venstreforskyvnings-bug ved manuell gjennomgang i Chrome (1280px og nedskalert) av koden som den var: BuyFlow/SellFlow sine `mx-auto`-bokser lå allerede inni flex-foreldre med `items-center`, så de ble sentrert to ganger (harmløst, men unødvendig dobbelt ansvar for sentrering). Ryddet opp ved kilden likevel, slik oppgaven ba om:
+
+- `BuyFlow.tsx` og roten i `SellFlow.tsx`: fjernet redundant `mx-auto` der forelder allerede er `flex items-center` (parent eier sentreringen); beholdt `mx-auto` der forelder ikke er flex (f.eks. steg-2/3-kortene i SellFlow, EditDraftStep).
+- Ny "myk overgang"-mekanikk er ren CSS, ingen ny state løftet opp: `Hero.tsx` fikk klassen `hero-section`, `ResultsGrid.tsx` fikk `results-grid` på selve grid-elementet, og `HomeContent.tsx` fikk en `home-shell`-klasse på ytre wrapper. I `globals.css` kollapser `.home-shell:has(.results-grid:not(:empty)) .hero-section` hero-teksten (max-height/opacity/margin, 500ms/350ms ease) når resultatgrid-en får barn. Ingen prop- eller state-endring i BuyFlow/SellFlow trengtes.
+- Verifisert i Chrome (localhost:3000, 1280px): uten resultater er hero+søkefelt sentrert under header; etter "Våre anbefalinger" glir hero mykt bort og søkefelt+resultater havner øverst, ikke vertikalsentrert.
+- Global `prefers-reduced-motion: reduce`-regel lagt i `globals.css` nå (gjelder alle overganger fremover i oppgave 3 også), siden jeg uansett var i filen.
+- Rettet `body`-fontregelen i `globals.css`: den falt tilbake til Arial/Helvetica fordi `font-family` aldri pekte på `--font-geist-sans`-variabelen fra layout.tsx. Nå brukes Geist faktisk som kroppsskrift (var reelt avvik fra "Kun Geist"-kravet).
+- Fjernet `prefers-color-scheme: dark`-varianten av paletten i `globals.css`. Den satte `--foreground` til nesten hvit mens bakgrunnen uansett tvinges til `#FBF7F0` via inline style i `layout.tsx` — i mørk systemmodus ville all tekst som arver body-fargen (ikke alt gjør det, det meste har egen inline-farge) blitt nesten usynlig lys tekst på krembunn. Godkjent design er én fast palett, ikke adaptiv, så dette var i strid med spec.
+- Ny copy brukt (fra godkjent liste): placeholder "Hva leter du etter?" i BuyFlow, "Hva vil du selge?" i SellFlow (erstatter tidligere "...hva trenger du?" / "...beskriv telefonen din").
+- La til hover/fokus-tilstander på "Se forslag", "Våre anbefalinger" og "Se forslag til annonse"-knappene, samt fokus-ring på søkefeltene. Måtte konvertere disse knappenes farger fra inline `style` til Tailwind-klasser (`border-[#C4622E]` osv.) — inline style har høyere spesifisitet enn Tailwind sine `hover:`/`focus-visible:`-klasser og ville overstyrt dem.
+- La til `role="status" aria-live="polite"` på de eksisterende "Henter..."-tekstene (ikke ny copy, bare gjort dem skjermleser-vennlige).
+
+**Sjekk visuelt (lokalt):** forsiden i "Kjøp"-modus tom, deretter trykk "Våre anbefalinger" og se at hero-teksten glir bort mens søkefeltet flytter opp — spesielt at det ikke "hopper" eller at linjene ombrekker stygt midt i overgangen på smalere skjermbredder. Sjekk at Geist-fonten nå faktisk brukes (tekst skal se ut som før, men dette er en reell fontbytte under panseret). Sjekk hover/fokus (tab-tastatur) på knappene og søkefeltene.
 
 ## Funn utenfor scope
 
