@@ -31,6 +31,15 @@ Fant ikke et reelt venstreforskyvnings-bug ved manuell gjennomgang i Chrome (128
 
 **Sjekk visuelt (lokalt):** forsiden i "Kjøp"-modus tom, deretter trykk "Våre anbefalinger" og se at hero-teksten glir bort mens søkefeltet flytter opp — spesielt at det ikke "hopper" eller at linjene ombrekker stygt midt i overgangen på smalere skjermbredder. Sjekk at Geist-fonten nå faktisk brukes (tekst skal se ut som før, men dette er en reell fontbytte under panseret). Sjekk hover/fokus (tab-tastatur) på knappene og søkefeltene.
 
+### 2. Loading — ferdig
+
+- Ny `ListingCardSkeleton.tsx` og `ResultsGridSkeleton.tsx` (rene presentasjonskomponenter, ingen state/datahenting, lagt i `components/shared`) — gjenbruker nøyaktig samme grid-klasser som `ResultsGrid` (inkl. `results-grid`-klassen fra oppgave 1, så hero fortsatt kollapser mens skjelettene vises).
+- `BuyFlow.tsx` viser `ResultsGridSkeleton` mens `loading` er sann, ellers `ResultsGrid`. Beholdt synlig "Henter..." (eksisterende copy), men gjorde den til en skikkelig `role="status" aria-live="polite"`-region med en separat skjult `sr-only`-tekst "Søker..." (godkjent skjermleser-copy) slik at skjermlesere ikke leser "Henter..." og "Søker..." samtidig.
+- Ny `Spinner.tsx` (ren presentasjonskomponent, `components/shared`) brukt i `EditDraftStep.tsx` sammen med en skjult `sr-only`-tekst "Oppdaterer pris..." (godkjent copy) når `adjusting` er sann. Prisen får en lett opacity-overgang mens den venter på nytt forslag.
+- Alle nye spinnere/skeletons har `aria-hidden="true"` på selve de visuelle elementene; det er kun `role="status"`-regionene som annonseres for skjermleser, for å unngå støy.
+
+**Sjekk visuelt (lokalt):** Lokal API-respons er for rask til at jeg fikk fanget skjelett-tilstanden i et skjermbilde (og mitt forsøk på å forsinke `fetch` via konsollen traff ikke sidens egen `fetch`, trolig isolert JS-kontekst). Koden er bygget til å vise skjelett-kort automatisk mens `loading` er sann — sjekk gjerne selv med nettverksdrossling i DevTools (Network → Slow 3G) på "Våre anbefalinger"/"Se forslag", og at EditDraftStep-spinneren vises kort når du endrer tilstand/lagring/batteri (utløser `/api/adjust-price`).
+
 ## Funn utenfor scope
 
 (fylles ut underveis)

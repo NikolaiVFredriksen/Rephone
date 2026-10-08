@@ -3,6 +3,7 @@
 import { useState } from "react";
 import FilterChips from "./FilterChips";
 import ResultsGrid from "../shared/ResultsGrid";
+import ResultsGridSkeleton from "../shared/ResultsGridSkeleton";
 import type { Listing } from "../shared/ListingCard";
 
 type Filters = {
@@ -90,19 +91,21 @@ export default function BuyFlow() {
 
       <div className="w-full max-w-3xl mt-12">
         {loading && (
-          <p
-            style={{ color: "#8A7A68" }}
-            className="text-center text-sm"
-            role="status"
-            aria-live="polite"
-          >
-            Henter...
-          </p>
+          <div role="status" aria-live="polite" className="text-center text-sm mb-6">
+            <span aria-hidden="true" style={{ color: "#8A7A68" }}>
+              Henter...
+            </span>
+            <span className="sr-only">Søker...</span>
+          </div>
         )}
         {error && <p className="text-center text-sm text-red-600">{error}</p>}
 
         <FilterChips filters={filters} />
-        <ResultsGrid results={results} />
+        {loading ? (
+          <ResultsGridSkeleton />
+        ) : (
+          <ResultsGrid results={results} />
+        )}
       </div>
     </>
   );
