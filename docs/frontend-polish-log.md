@@ -67,9 +67,19 @@ Fant ikke et reelt venstreforskyvnings-bug ved manuell gjennomgang i Chrome (128
 - `ImageUploader.tsx`: byttet den provisoriske tekst-baserte "+"/"..." med et ordentlig SVG plusstegn og den delte `Spinner`-komponenten (samme som EditDraftStep) for opplastingstilstanden. Lagt til en myk inn-animasjon (`fade-in-up`) på selve bildet når det er lastet opp. Ikke endret opplastingslogikken, kun hvordan "tom"/"laster"/"bilde"-tilstandene vises.
 - Verifisert i Chrome: trykket gjennom steg 1 → 2 i Selg-flyten, StepIndicator oppdaterer seg korrekt (sirkel 2 fylles, streken mellom 1 og 2 blir terrakotta), plassholderteksten "Hva vil du selge?" vises, og de nye plusstegn-ikonene i opplastingsboksene ser rene ut.
 
+### 6. /logg-inn og /registrer — ferdig
+
+- Begge skjemaene satt direkte på sidebakgrunnen før, uten kort — avvek fra resten av appen der alt interaktivt innhold (salg-stegene, annonsedetalj) ligger i et hvitt kort med `#E9DCCB`-kant og avrundede hjørner. Pakket nå inn i samme kortmønster (`background: white, border: 1px solid #E9DCCB, borderRadius: 24`), med `fade-in-up` for en myk inn-animasjon.
+- Input-feltene fikk bakgrunn `#FBF7F0` (i stedet for hvit, siden de nå ligger i et hvitt kort — samme kontrastprinsipp som skjema-feltene i `EditDraftStep`/`GenerateDescription`) og en synlig `focus-visible`-ring som matcher resten av appen (feltene hadde `outline-none` uten noen erstatning før, så tastaturbrukere mistet fokusindikator helt).
+- Lagt til hover/fokus på "Logg inn"/"Registrer deg"-knappene og "Registrer deg"-lenken på logg-inn-siden.
+- `main` på begge sider sentreres nå vertikalt (`flex-1 flex items-center justify-center`), samme mønster som forsiden, i stedet for å henge øverst på en ellers tom side.
+- Rørt kun JSX/klasser, ikke `handleSubmit` eller auth-kallene.
+
+**Sjekk visuelt (lokalt):** Bekreftet i Chrome — begge sidene viser nå et hvitt kort midt på siden med samme kantlinje/avrunding som resten av appen, feltene har krembakgrunn, og knappene har riktig farge/hover.
+
 ## Funn utenfor scope
 
-(fylles ut underveis)
+- `/registrer` mangler en lenke tilbake til `/logg-inn` ("Har du allerede en konto?"-type lenke), mens `/logg-inn` har en tilsvarende lenke til `/registrer`. Ikke fikset — det krever ny tekst som ikke står på den godkjente copy-listen, og er i grunn et innholds-/UX-gap, ikke ren styling.
 
 ## Hva jeg ikke endret (copy-forslag utover godkjent liste)
 
