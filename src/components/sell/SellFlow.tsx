@@ -4,6 +4,7 @@ import { useState } from "react";
 import ImageUploader from "./ImageUploader";
 import EditDraftStep from "./EditDraftStep";
 import GenerateDescription from "./GenerateDescription";
+import StepIndicator from "./StepIndicator";
 
 type Draft = {
   brand: string;
@@ -69,6 +70,7 @@ export default function SellFlow() {
 
   return (
     <div className="w-full max-w-3xl mt-12">
+      <StepIndicator step={step} />
       {step === 1 && (
         <div className="w-full max-w-2xl mx-auto text-center fade-in-up">
           <form onSubmit={handleSubmit}>

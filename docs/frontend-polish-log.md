@@ -60,10 +60,17 @@ Fant ikke et reelt venstreforskyvnings-bug ved manuell gjennomgang i Chrome (128
 
 **Sjekk visuelt (lokalt):** Fikk testet og bekreftet desktop-visningen i Chrome (bilde til venstre, info til høyre, luft/hierarki ser riktig ut). Fikk IKKE bekreftet 375px-stacking visuelt — nettleserverktøyet mitt klarte ikke å endre selve viewport-bredden i denne økten (kun vindusstørrelsen, som ikke slo igjennom til `window.innerWidth`). Sjekk gjerne selv med DevTools-responsivmodus på 375px at bildet havner over info-panelet og ikke blir klemt sammen i to smale kolonner.
 
+### 5. Salg-flyten — ferdig
+
+- Ny `StepIndicator.tsx` (ren presentasjonskomponent, `components/sell`, eksplisitt forhåndsgodkjent i oppdragsbeskrivelsen). Tar kun `step`-prop, ingen egen state/datahenting. `SellFlow.tsx` sin eneste endring er å importere den og rendre `<StepIndicator step={step} />` — ingen endring i eksisterende state eller andre props.
+- Rent visuelt: 3 sirkler med tall (1/2/3) og en kobling-strek mellom dem, terrakotta for fullført/aktivt steg, dempet kantlinje for steg som gjenstår. Ingen tekstlabel per steg (se "Hva jeg ikke endret" under).
+- `ImageUploader.tsx`: byttet den provisoriske tekst-baserte "+"/"..." med et ordentlig SVG plusstegn og den delte `Spinner`-komponenten (samme som EditDraftStep) for opplastingstilstanden. Lagt til en myk inn-animasjon (`fade-in-up`) på selve bildet når det er lastet opp. Ikke endret opplastingslogikken, kun hvordan "tom"/"laster"/"bilde"-tilstandene vises.
+- Verifisert i Chrome: trykket gjennom steg 1 → 2 i Selg-flyten, StepIndicator oppdaterer seg korrekt (sirkel 2 fylles, streken mellom 1 og 2 blir terrakotta), plassholderteksten "Hva vil du selge?" vises, og de nye plusstegn-ikonene i opplastingsboksene ser rene ut.
+
 ## Funn utenfor scope
 
 (fylles ut underveis)
 
 ## Hva jeg ikke endret (copy-forslag utover godkjent liste)
 
-(fylles ut underveis)
+- **StepIndicator (oppgave 5):** vurderte å sette en tekstlabel under hvert stegnummer, f.eks. "Beskriv" / "Juster" / "Publiser", for bedre lesbarhet. Lot være siden det ikke står på den godkjente copy-listen. Forslag til vurdering.
