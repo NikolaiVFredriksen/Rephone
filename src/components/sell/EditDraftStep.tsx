@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Spinner from "../shared/Spinner";
 
 type Draft = {
   brand: string;
@@ -80,7 +81,7 @@ export default function EditDraftStep({
   }
 
   return (
-    <div className="max-w-xl mx-auto mt-8">
+    <div className="max-w-xl mx-auto mt-8 fade-in-up">
       <div
         style={{
           background: "white",
@@ -246,17 +247,28 @@ export default function EditDraftStep({
             marginBottom: 16,
           }}
         >
-          <p className="text-xs" style={{ color: "#8A4A2E" }}>
-            {adjusting ? "Oppdaterer prisforslag..." : draft.reasoning}
-          </p>
-          <p className="text-lg font-medium mt-1" style={{ color: "#C4622E" }}>
+          <div
+            role="status"
+            aria-live="polite"
+            className="flex items-center gap-2 text-xs"
+            style={{ color: "#8A4A2E" }}
+          >
+            {adjusting && <Spinner size={12} />}
+            <span aria-hidden={adjusting}>
+              {adjusting ? "Oppdaterer prisforslag..." : draft.reasoning}
+            </span>
+            {adjusting && <span className="sr-only">Oppdaterer pris...</span>}
+          </div>
+          <p
+            className="text-lg font-medium mt-1 transition-opacity"
+            style={{ color: "#C4622E", opacity: adjusting ? 0.5 : 1 }}
+          >
             {draft.price.toLocaleString("no")} kr
           </p>
         </div>
         <button
           onClick={onContinue}
-          style={{ background: "#C4622E", color: "#FBF7F0" }}
-          className="w-full rounded-full py-2.5 text-sm"
+          className="w-full rounded-full py-2.5 text-sm bg-[#C4622E] text-[#FBF7F0] transition-colors hover:bg-[#A8521F] outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
         >
           Fortsett
         </button>

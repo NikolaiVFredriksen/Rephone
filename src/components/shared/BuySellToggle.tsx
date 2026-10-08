@@ -14,24 +14,22 @@ export default function BuySellToggle({ mode, onChange }: BuySellToggleProps) {
         <button
           type="button"
           onClick={() => onChange("kjop")}
-          style={{
-            background: mode === "kjop" ? "#C4622E" : "transparent",
-            color: mode === "kjop" ? "#FBF7F0" : "#8A7A68",
-            border: mode === "kjop" ? "none" : "1px dashed #C9A98D",
-          }}
-          className="px-4 py-1.5 rounded-full text-sm"
+          className={`px-4 py-1.5 rounded-full text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FBF7F0] ${
+            mode === "kjop"
+              ? "bg-[#C4622E] text-[#FBF7F0] border border-transparent"
+              : "bg-transparent text-[#8A7A68] border border-dashed border-[#C9A98D] hover:border-[#C4622E] hover:text-[#C4622E]"
+          }`}
         >
           Kjøp
         </button>
         <button
           type="button"
           onClick={() => onChange("selg")}
-          style={{
-            background: mode === "selg" ? "#C4622E" : "transparent",
-            color: mode === "selg" ? "#FBF7F0" : "#8A7A68",
-            border: mode === "selg" ? "none" : "1px dashed #C9A98D",
-          }}
-          className="px-4 py-1.5 rounded-full text-sm"
+          className={`px-4 py-1.5 rounded-full text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FBF7F0] ${
+            mode === "selg"
+              ? "bg-[#C4622E] text-[#FBF7F0] border border-transparent"
+              : "bg-transparent text-[#8A7A68] border border-dashed border-[#C9A98D] hover:border-[#C4622E] hover:text-[#C4622E]"
+          }`}
         >
           Selg
         </button>

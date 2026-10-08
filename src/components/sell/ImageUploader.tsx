@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Spinner from "../shared/Spinner";
 
 type ImageUploaderProps = {
   images: string[];
@@ -53,7 +54,6 @@ export default function ImageUploader({
               width: 72,
               height: 72,
               background: "white",
-              border: "1px dashed #C9A98D",
               borderRadius: 12,
               display: "flex",
               alignItems: "center",
@@ -63,10 +63,12 @@ export default function ImageUploader({
               fontSize: 24,
               overflow: "hidden",
             }}
+            className="border border-dashed border-[#C9A98D] transition-colors hover:border-[#C4622E] hover:text-[#C4622E] focus-within:ring-2 focus-within:ring-[#C4622E] focus-within:ring-offset-2 focus-within:ring-offset-[#FBF7F0]"
           >
             {images[i] ? (
               <img
                 src={images[i]}
+                className="fade-in-up"
                 style={{
                   width: "100%",
                   height: "100%",
@@ -74,9 +76,22 @@ export default function ImageUploader({
                 }}
               />
             ) : uploading ? (
-              "..."
+              <Spinner size={16} />
             ) : (
-              "+"
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 18 18"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M9 2v14M2 9h14"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+              </svg>
             )}
             <input
               type="file"

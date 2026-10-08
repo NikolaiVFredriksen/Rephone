@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fbf7f0;
+  --foreground: #3a2e22;
 }
 
 @theme inline {
@@ -12,17 +12,10 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 
   input,
   textarea,
@@ -33,4 +26,49 @@ body {
 
 button {
   cursor: pointer;
+}
+
+/* Forsiden: hero-teksten viker mykt når resultater (eller skeletons) vises, */
+/* slik at søkefeltet flytter oppover i stedet for å hoppe. */
+.hero-section {
+  overflow: hidden;
+  max-height: 320px;
+  opacity: 1;
+  transition:
+    max-height 500ms ease,
+    opacity 350ms ease,
+    margin 500ms ease;
+}
+
+.home-shell:has(.results-grid:not(:empty)) .hero-section {
+  max-height: 0;
+  opacity: 0;
+  margin-bottom: 0;
+  pointer-events: none;
+}
+
+/* Gjenbrukt fade/løft-inn-animasjon: resultatkort (med stagger via */
+/* --enter-delay) og steg-overganger i salg-flyten. */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fade-in-up 420ms ease both;
+  animation-delay: var(--enter-delay, 0ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+  }
 }

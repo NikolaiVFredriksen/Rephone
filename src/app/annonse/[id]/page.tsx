@@ -52,9 +52,9 @@ export default async function AnnonsePage({
             border: "1px solid #E9DCCB",
             borderRadius: 24,
           }}
-          className="p-8 flex gap-10"
+          className="p-6 sm:p-8 md:p-10 flex flex-col md:flex-row gap-6 md:gap-10"
         >
-          <div className="w-1/2 shrink-0 aspect-[4/5] rounded-2xl overflow-hidden relative">
+          <div className="w-full md:w-1/2 md:shrink-0 aspect-[4/5] rounded-2xl overflow-hidden relative">
             {listing.imageUrl ? (
               <img
                 src={listing.imageUrl}
@@ -71,23 +71,26 @@ export default async function AnnonsePage({
             )}
           </div>
 
-          <div className="flex-1 min-w-0 flex flex-col justify-center">
+          <div className="flex-1 min-w-0 flex flex-col md:justify-center">
             <p className="text-sm" style={{ color: "#A69581" }}>
               {listing.brand}
             </p>
             <h1
-              className="text-3xl font-bold leading-tight mt-1"
+              className="text-3xl font-bold leading-tight mt-1.5"
               style={{ color: "#3A2E22" }}
             >
               {listing.model}
             </h1>
-            <p className="text-2xl font-bold mt-3" style={{ color: "#C4622E" }}>
+            <p
+              className="text-2xl font-semibold mt-3"
+              style={{ color: "#C4622E" }}
+            >
               {listing.price.toLocaleString("no")}kr
             </p>
 
-            <div className="h-px my-6" style={{ background: "#E9DCCB" }} />
+            <div className="h-px my-6 md:my-7" style={{ background: "#E9DCCB" }} />
 
-            <div className="space-y-3">
+            <div className="space-y-3.5">
               {facts.map((f) => (
                 <div key={f.label} className="flex justify-between text-sm">
                   <span style={{ color: "#8A7A68" }}>{f.label}</span>
@@ -98,16 +101,19 @@ export default async function AnnonsePage({
               ))}
             </div>
 
-            <div className="h-px my-6" style={{ background: "#E9DCCB" }} />
+            <div className="h-px my-6 md:my-7" style={{ background: "#E9DCCB" }} />
 
-            <p className="text-sm leading-relaxed" style={{ color: "#3A2E22" }}>
+            <p
+              className="text-sm leading-relaxed max-w-md"
+              style={{ color: "#3A2E22" }}
+            >
               {listing.description}
             </p>
 
             <a
               href={`mailto:${listing.seller.email}?subject=${encodeURIComponent("Interessert i " + listing.title)}`}
               style={{ background: "#C4622E", color: "#FBF7F0" }}
-              className="block text-center mt-6 px-5 py-3 rounded-full text-sm font-medium"
+              className="block text-center mt-7 px-5 py-3 rounded-full text-sm font-medium transition-colors hover:bg-[#A8521F] outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
             >
               Kontakt selger
             </a>

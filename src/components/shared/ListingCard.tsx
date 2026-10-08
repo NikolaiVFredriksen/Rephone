@@ -34,7 +34,10 @@ export default function ListingCard({ listing }: { listing: Listing }) {
     .join(" · ");
 
   return (
-    <Link href={`/annonse/${listing.id}`} className="block group">
+    <Link
+      href={`/annonse/${listing.id}`}
+      className="block group rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FBF7F0]"
+    >
       <div
         style={{
           background: listing.imageUrl ? undefined : "#F3DCD1",
@@ -45,7 +48,7 @@ export default function ListingCard({ listing }: { listing: Listing }) {
           <img
             src={listing.imageUrl}
             alt={listing.title}
-            className="w-full h-full object-cover transition group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
           />
         ) : (
           <div

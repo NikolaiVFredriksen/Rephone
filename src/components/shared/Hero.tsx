@@ -1,6 +1,6 @@
 export default function Hero() {
   return (
-    <section className="w-full max-w-2xl mx-auto text-center">
+    <section className="hero-section w-full max-w-2xl mx-auto text-center">
       <p
         style={{ color: "#C4622E" }}
         className="text-xs font-medium tracking-[0.2em] uppercase mb-3"

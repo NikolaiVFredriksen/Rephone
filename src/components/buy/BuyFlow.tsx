@@ -3,6 +3,7 @@
 import { useState } from "react";
 import FilterChips from "./FilterChips";
 import ResultsGrid from "../shared/ResultsGrid";
+import ResultsGridSkeleton from "../shared/ResultsGridSkeleton";
 import type { Listing } from "../shared/ListingCard";
 
 type Filters = {
@@ -60,29 +61,27 @@ export default function BuyFlow() {
 
   return (
     <>
-      <div className="w-full max-w-2xl mx-auto text-center">
+      <div className="w-full max-w-2xl text-center">
         <form onSubmit={handleSubmit}>
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="...hva trenger du?"
+            placeholder="Hva leter du etter?"
             style={{ border: "1px solid #E9DCCB", background: "white" }}
-            className="w-full rounded-full px-6 py-4 text-sm outline-none mb-4"
+            className="w-full rounded-full px-6 py-4 text-sm outline-none mb-4 transition-shadow focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FBF7F0]"
           />
 
           <div className="flex gap-2 justify-center">
             <button
               type="submit"
-              style={{ border: "1px solid #C4622E", color: "#C4622E" }}
-              className="px-4 py-1.5 rounded-full text-sm"
+              className="px-4 py-1.5 rounded-full text-sm border border-[#C4622E] text-[#C4622E] bg-transparent transition-colors hover:bg-[#C4622E] hover:text-[#FBF7F0] focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FBF7F0] outline-none"
             >
               Se forslag
             </button>
             <button
               type="button"
               onClick={handleShowRecommendations}
-              style={{ border: "1px dashed #C9A98D", color: "#8A7A68" }}
-              className="px-4 py-1.5 rounded-full text-sm"
+              className="px-4 py-1.5 rounded-full text-sm border border-dashed border-[#C9A98D] text-[#8A7A68] transition-colors hover:border-[#C4622E] hover:text-[#C4622E] focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FBF7F0] outline-none"
             >
               Våre anbefalinger
             </button>
@@ -90,16 +89,23 @@ export default function BuyFlow() {
         </form>
       </div>
 
-      <div className="max-w-3xl mx-auto mt-12">
+      <div className="w-full max-w-3xl mt-12">
         {loading && (
-          <p style={{ color: "#8A7A68" }} className="text-center text-sm">
-            Henter...
-          </p>
+          <div role="status" aria-live="polite" className="text-center text-sm mb-6">
+            <span aria-hidden="true" style={{ color: "#8A7A68" }}>
+              Henter...
+            </span>
+            <span className="sr-only">Søker...</span>
+          </div>
         )}
         {error && <p className="text-center text-sm text-red-600">{error}</p>}
 
         <FilterChips filters={filters} />
-        <ResultsGrid results={results} />
+        {loading ? (
+          <ResultsGridSkeleton />
+        ) : (
+          <ResultsGrid results={results} />
+        )}
       </div>
     </>
   );

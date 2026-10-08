@@ -13,7 +13,7 @@ export default function HomeContent() {
 
   return (
     <main className="px-6 py-12 flex-1 flex flex-col items-center justify-center overflow-hidden">
-      <div className="w-full flex flex-col items-center -translate-y-10">
+      <div className="home-shell w-full flex flex-col items-center -translate-y-10">
         {mode === "kjop" && <Hero />}
         <div
           className={`w-full flex flex-col items-center gap-3 ${mode === "kjop" ? "mt-10" : ""}`}
