@@ -1,0 +1,32 @@
+[
+  {
+    "id": "search-01",
+    "input": "iPhone under 4000kr, minst 80% batteri og 256GB",
+    "expected": {
+      "brand": "Apple",
+      "budget": 4000,
+      "minBatteryHealth": 80,
+      "minStorage": 256
+    }
+  },
+  {
+    "id": "search-02",
+    "input": "Samsung under 3000kr med minst 85% batterihelse",
+    "expected": {
+      "brand": "Samsung",
+      "budget": 3000,
+      "minBatteryHealth": 85,
+      "minStorage": null
+    }
+  },
+  {
+    "id": "search-03",
+    "input": "Apple-telefon med minst 512GB lagring",
+    "expected": {
+      "brand": "Apple",
+      "budget": null,
+      "minBatteryHealth": null,
+      "minStorage": 512
+    }
+  }
+]
