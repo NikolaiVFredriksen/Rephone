@@ -28,5 +28,65 @@
       "minBatteryHealth": null,
       "minStorage": 512
     }
+  },
+  {
+    "id": "search-04",
+    "input": "iPhone over 4000kr",
+    "expected": { "brand": "Apple", "budget": null },
+    "note": "Schemaet har bare maks-pris. Budget 4000 ville gitt billige telefoner, stikk motsatt av det kjøperen ba om."
+  },
+  {
+    "id": "search-05",
+    "input": "billig samsung med godt batteri",
+    "expected": { "brand": "Samsung", "budget": null, "minBatteryHealth": 80 },
+    "note": "Din beslutning: 'godt batteri' betyr 80. 'Billig' er ikke et tall, så budget skal være null."
+  },
+  {
+    "id": "search-06",
+    "input": "Apple eller Samsung under 5000",
+    "expected": { "brand": null, "budget": 5000 },
+    "note": "brand-feltet rommer bare ett merke. To merker skal ikke bli til ett."
+  },
+  {
+    "id": "search-07",
+    "input": "iphone 13 pro max, 1 TB, minst 90 prosent batteri",
+    "expected": {
+      "brand": "Apple",
+      "model": "iPhone 13 Pro Max",
+      "budget": null,
+      "minBatteryHealth": 90,
+      "minStorage": 1024
+    },
+    "note": "TB skal bli GB (1024), 'prosent' skrevet ut skal gi tallet 90, og modellen skal med."
+  },
+  {
+    "id": "search-08",
+    "input": "Leter etter en Samsun med minst 128 gb, maks 2500 kr",
+    "expected": { "brand": "Samsung", "budget": 2500, "minStorage": 128 },
+    "note": "Feilstavet merke og små bokstaver."
+  },
+  {
+    "id": "search-09",
+    "input": "13 pro",
+    "expected": { "brand": "Apple", "model": "iPhone 13 Pro" },
+    "note": "Skal gi 13 Pro og 13 Pro Max, ikke vanlig 13."
+  },
+  {
+    "id": "search-10",
+    "input": "iPhone 13",
+    "expected": { "brand": "Apple", "model": "iPhone 13" },
+    "note": "Skal gi alle 13-variantene."
+  },
+  {
+    "id": "search-11",
+    "input": "Galaxy S24 under 5000",
+    "expected": { "brand": "Samsung", "model": "Galaxy S24", "budget": 5000 },
+    "note": "Modellnavn uten merkenavn. Merket må utledes av modellen."
+  },
+  {
+    "id": "search-12",
+    "input": "Xiaomi 13 under 3000",
+    "expected": { "brand": "Xiaomi", "model": "13", "budget": 3000 },
+    "note": "Samme tall som iPhone 13, men merket er nevnt. Modellen skal være '13', ikke 'iPhone 13'."
   }
 ]

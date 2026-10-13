@@ -1,6 +1,7 @@
 type Filters = {
   budget?: number;
   brand?: string;
+  model?: string;
   minBatteryHealth?: number;
   minStorage?: number;
   priorities?: string[];
@@ -33,6 +34,14 @@ export default function FilterChips({ filters }: FilterChipsProps) {
           style={{ background: "#F3DCD1", color: "#8A4A2E" }}
         >
           {filters.brand}
+        </span>
+      )}
+      {filters.model && (
+        <span
+          className="text-xs px-3 py-1 rounded-full"
+          style={{ background: "#F3DCD1", color: "#8A4A2E" }}
+        >
+          {filters.model}
         </span>
       )}
       {filters.minBatteryHealth && (
