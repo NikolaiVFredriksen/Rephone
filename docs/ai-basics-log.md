@@ -138,7 +138,23 @@ brukt", "Godt brukt", osv.) i stedet for de tekniske enum-navnene.
 
 **Eval etter punkt 4: 25/26** (opp fra 21/22).
 
-## Punkt 5–8
+## Punkt 5 — Sortering (sortBy)
+
+**Hvorfor:** "Billigste" og "dyreste" er noe av det mest naturlige folk
+skriver, men søket ignorerte dette fullstendig og sorterte alltid etter
+nyeste annonse — selv om teksten eksplisitt ba om noe annet.
+
+La til `sortBy` ("newest" | "price_asc" | "price_desc") i prompten, og byttet
+`orderBy: { createdAt: "desc" }` med et oppslag i en liten `SORT_ORDER_BY`-
+tabell basert på `filters.sortBy` (med "newest" som fallback — uendret
+oppførsel når ingenting er sagt om sortering). Utvidet `run.ts` til faktisk å
+sjekke at prisene i resultatet er sortert riktig, ikke bare at feltet ble
+tolket riktig. Viser en chip ("Billigst først"/"Dyrest først") bare når
+sorteringen avviker fra standard.
+
+**Eval etter punkt 5: 27/28** (opp fra 25/26).
+
+## Punkt 6–8
 
 (fylles ut fortløpende)
 

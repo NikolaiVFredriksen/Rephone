@@ -171,5 +171,19 @@
     "id": "condition-vague-unclear",
     "input": "brukt telefon",
     "expected": { "conditions": null }
+  },
+  {
+    "id": "sort-cheapest",
+    "input": "billigste iPhone",
+    "expected": { "brand": "Apple", "sortBy": "price_asc" },
+    "onlyBrands": ["Apple"],
+    "minResults": 1
+  },
+  {
+    "id": "sort-most-expensive",
+    "input": "dyreste Samsung",
+    "expected": { "brand": "Samsung", "sortBy": "price_desc" },
+    "onlyBrands": ["Samsung"],
+    "minResults": 1
   }
 ]

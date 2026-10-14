@@ -139,6 +139,18 @@ async function runCase(c: Case) {
     );
   }
 
+  if (filters.sortBy === "price_asc" || filters.sortBy === "price_desc") {
+    const prices = results.map((l) => l.price);
+    const sorted = [...prices].sort((a, b) =>
+      filters.sortBy === "price_asc" ? a - b : b - a,
+    );
+    if (JSON.stringify(prices) !== JSON.stringify(sorted)) {
+      problems.push(
+        `resultater er ikke sortert etter ${filters.sortBy}: ${prices.join(", ")}`,
+      );
+    }
+  }
+
   return { ok: problems.length === 0, problems, filters, results };
 }
 

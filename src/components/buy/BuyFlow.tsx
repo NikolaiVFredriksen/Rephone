@@ -14,6 +14,7 @@ type Filters = {
   minBatteryHealth?: number;
   minStorage?: number;
   conditions?: string[];
+  sortBy?: string;
   priorities?: string[];
 };
 

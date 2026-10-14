@@ -6,6 +6,7 @@ type Filters = {
   minBatteryHealth?: number;
   minStorage?: number;
   conditions?: string[];
+  sortBy?: string;
   priorities?: string[];
 };
 
@@ -14,6 +15,11 @@ const CONDITION_LABELS: Record<string, string> = {
   PENT_BRUKT: "Pent brukt",
   BRUKT: "Brukt",
   GODT_BRUKT: "Godt brukt",
+};
+
+const SORT_LABELS: Record<string, string> = {
+  price_asc: "Billigst først",
+  price_desc: "Dyrest først",
 };
 
 type FilterChipsProps = {
@@ -84,6 +90,14 @@ export default function FilterChips({ filters }: FilterChipsProps) {
           style={{ background: "#F3DCD1", color: "#8A4A2E" }}
         >
           Min. {storageLabel(filters.minStorage)}
+        </span>
+      )}
+      {filters.sortBy && SORT_LABELS[filters.sortBy] && (
+        <span
+          className="text-xs px-3 py-1 rounded-full"
+          style={{ background: "#F3DCD1", color: "#8A4A2E" }}
+        >
+          {SORT_LABELS[filters.sortBy]}
         </span>
       )}
       {filters.priorities?.map((p) => (
