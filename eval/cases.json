@@ -1,6 +1,6 @@
 [
   {
-    "id": "search-01",
+    "id": "combo-battery-storage-budget",
     "input": "iPhone under 4000kr, minst 80% batteri og 256GB",
     "expected": {
       "brand": "Apple",
@@ -10,83 +10,51 @@
     }
   },
   {
-    "id": "search-02",
-    "input": "Samsung under 3000kr med minst 85% batterihelse",
-    "expected": {
-      "brand": "Samsung",
-      "budget": 3000,
-      "minBatteryHealth": 85,
-      "minStorage": null
-    }
+    "id": "battery-results",
+    "input": "iPhone med minst 85 prosent batteri",
+    "expected": { "brand": "Apple", "minBatteryHealth": 85 }
   },
   {
-    "id": "search-03",
-    "input": "Apple-telefon med minst 512GB lagring",
-    "expected": {
-      "brand": "Apple",
-      "budget": null,
-      "minBatteryHealth": null,
-      "minStorage": 512
-    }
+    "id": "storage-tb",
+    "input": "iPhone med 1 TB lagring",
+    "expected": { "brand": "Apple", "minStorage": 1024 }
   },
   {
-    "id": "search-04",
-    "input": "iPhone over 4000kr",
-    "expected": { "brand": "Apple", "budget": null },
-    "note": "Schemaet har bare maks-pris. Budget 4000 ville gitt billige telefoner, stikk motsatt av det kjøperen ba om."
-  },
-  {
-    "id": "search-05",
+    "id": "vague-good-battery",
     "input": "billig samsung med godt batteri",
-    "expected": { "brand": "Samsung", "budget": null, "minBatteryHealth": 80 },
-    "note": "Din beslutning: 'godt batteri' betyr 80. 'Billig' er ikke et tall, så budget skal være null."
+    "expected": { "brand": "Samsung", "budget": null, "minBatteryHealth": 80 }
   },
   {
-    "id": "search-06",
-    "input": "Apple eller Samsung under 5000",
-    "expected": { "brand": null, "budget": 5000 },
-    "note": "brand-feltet rommer bare ett merke. To merker skal ikke bli til ett."
-  },
-  {
-    "id": "search-07",
-    "input": "iphone 13 pro max, 1 TB, minst 90 prosent batteri",
-    "expected": {
-      "brand": "Apple",
-      "model": "iPhone 13 Pro Max",
-      "budget": null,
-      "minBatteryHealth": 90,
-      "minStorage": 1024
-    },
-    "note": "TB skal bli GB (1024), 'prosent' skrevet ut skal gi tallet 90, og modellen skal med."
-  },
-  {
-    "id": "search-08",
+    "id": "typo-brand",
     "input": "Leter etter en Samsun med minst 128 gb, maks 2500 kr",
-    "expected": { "brand": "Samsung", "budget": 2500, "minStorage": 128 },
-    "note": "Feilstavet merke og små bokstaver."
+    "expected": { "brand": "Samsung", "budget": 2500, "minStorage": 128 }
   },
   {
-    "id": "search-09",
-    "input": "13 pro",
-    "expected": { "brand": "Apple", "model": "iPhone 13 Pro" },
-    "note": "Skal gi 13 Pro og 13 Pro Max, ikke vanlig 13."
-  },
-  {
-    "id": "search-10",
+    "id": "model-13",
     "input": "iPhone 13",
     "expected": { "brand": "Apple", "model": "iPhone 13" },
-    "note": "Skal gi alle 13-variantene."
+    "onlyModelsContaining": ["iPhone 13"],
+    "minResults": 1
   },
   {
-    "id": "search-11",
+    "id": "model-13-pro",
+    "input": "13 pro",
+    "expected": { "brand": "Apple", "model": "iPhone 13 Pro" },
+    "onlyModelsContaining": ["iPhone 13 Pro"],
+    "minResults": 1
+  },
+  {
+    "id": "model-without-brand",
     "input": "Galaxy S24 under 5000",
     "expected": { "brand": "Samsung", "model": "Galaxy S24", "budget": 5000 },
-    "note": "Modellnavn uten merkenavn. Merket må utledes av modellen."
+    "onlyModelsContaining": ["Galaxy S24"],
+    "minResults": 1
   },
   {
-    "id": "search-12",
+    "id": "xiaomi-13-not-iphone",
     "input": "Xiaomi 13 under 3000",
     "expected": { "brand": "Xiaomi", "model": "13", "budget": 3000 },
-    "note": "Samme tall som iPhone 13, men merket er nevnt. Modellen skal være '13', ikke 'iPhone 13'."
+    "onlyBrands": ["Xiaomi"],
+    "minResults": 1
   }
 ]

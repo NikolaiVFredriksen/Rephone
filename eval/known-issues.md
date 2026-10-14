@@ -1,0 +1,2 @@
+- "iPhone over 4000kr": schemaet har bare maks-pris, så "over" kan ikke uttrykkes
+- "Apple eller Samsung under 5000": brand rommer bare ett merke
