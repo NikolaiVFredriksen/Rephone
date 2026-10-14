@@ -1,4 +1,10 @@
 import { readFileSync } from "node:fs";
+import "dotenv/config";
+import { PrismaClient } from "../src/generated/prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter });
 
 const BASE = process.env.EVAL_BASE_URL ?? "http://localhost:3000";
 
@@ -86,6 +92,38 @@ function filterViolations(l: Listing, f: Record<string, unknown>): string[] {
   return v;
 }
 
+// Fasiten for `total` kommer alltid fra databasen og testens EGNE kriterier
+// (c.expected), aldri fra hva AI-en tolket i det aktuelle svaret.
+async function expectedTotal(expected: Record<string, unknown>) {
+  const priceFilter: { lte?: number; gte?: number } = {};
+  if (expected.budget) priceFilter.lte = Number(expected.budget);
+  if (expected.minPrice) priceFilter.gte = Number(expected.minPrice);
+
+  const conditions = Array.isArray(expected.conditions)
+    ? (expected.conditions as string[])
+    : [];
+
+  return prisma.listing.count({
+    where: {
+      status: "AKTIV",
+      ...(Object.keys(priceFilter).length ? { price: priceFilter } : {}),
+      ...(conditions.length ? { condition: { in: conditions as never } } : {}),
+      ...(expected.brand
+        ? { brand: { equals: String(expected.brand), mode: "insensitive" } }
+        : {}),
+      ...(expected.model
+        ? { model: { contains: String(expected.model), mode: "insensitive" } }
+        : {}),
+      ...(expected.minBatteryHealth
+        ? { batteryHealth: { gte: Number(expected.minBatteryHealth) } }
+        : {}),
+      ...(expected.minStorage
+        ? { storage: { gte: Number(expected.minStorage) } }
+        : {}),
+    },
+  });
+}
+
 async function runCase(c: Case) {
   const res = await fetch(`${BASE}/api/search`, {
     method: "POST",
@@ -137,6 +175,15 @@ async function runCase(c: Case) {
     problems.push(
       `bare ${results.length} treff, forventet minst ${c.minResults}`,
     );
+  }
+
+  if (typeof data.total === "number") {
+    const want = await expectedTotal(c.expected);
+    if (data.total !== want) {
+      problems.push(
+        `total: API svarte ${data.total}, databasen har ${want} treff for kriteriene i denne saken`,
+      );
+    }
   }
 
   if (filters.sortBy === "price_asc" || filters.sortBy === "price_desc") {
@@ -192,6 +239,8 @@ async function main() {
   console.log(`\nSiste kjøring - saker riktige: ${lastRunOk}/${cases.length}`);
 }
 
-main().catch((e) => {
-  console.error("Skriptet krasjet. Går dev-serveren?", e.message);
-});
+main()
+  .catch((e) => {
+    console.error("Skriptet krasjet. Går dev-serveren?", e.message);
+  })
+  .finally(() => prisma.$disconnect());

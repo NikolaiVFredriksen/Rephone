@@ -216,5 +216,11 @@
     "expected": { "brand": "Apple", "priorities": ["billig", "nyere"] },
     "onlyBrands": ["Apple"],
     "minResults": 1
+  },
+  {
+    "id": "pagination-broad-search-total",
+    "input": "telefon",
+    "expected": {},
+    "minResults": 10
   }
 ]

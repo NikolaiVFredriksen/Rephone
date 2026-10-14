@@ -26,6 +26,9 @@ export default function BuyFlow() {
   const [filters, setFilters] = useState<Filters | null>(null);
   const [results, setResults] = useState<Listing[]>([]);
   const [searched, setSearched] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [lastQuery, setLastQuery] = useState("");
+  const [loadingMore, setLoadingMore] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -35,6 +38,7 @@ export default function BuyFlow() {
     setResults([]);
     setFilters(null);
     setSearched(false);
+    setTotal(0);
     setLoading(true);
 
     try {
@@ -46,6 +50,8 @@ export default function BuyFlow() {
       const data = await res.json();
       setFilters(data.filters);
       setResults(data.results);
+      setTotal(data.total ?? data.results.length);
+      setLastQuery(input);
       setSearched(true);
     } catch {
       setError("Noe gikk galt, prøv igjen");
@@ -54,10 +60,34 @@ export default function BuyFlow() {
     }
   }
 
+  async function handleShowMore() {
+    setError("");
+    setLoadingMore(true);
+    try {
+      const res = await fetch("/api/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: lastQuery,
+          filters,
+          offset: results.length,
+        }),
+      });
+      const data = await res.json();
+      setResults((prev) => [...prev, ...data.results]);
+      setTotal(data.total ?? total);
+    } catch {
+      setError("Noe gikk galt, prøv igjen");
+    } finally {
+      setLoadingMore(false);
+    }
+  }
+
   async function handleShowRecommendations() {
     setError("");
     setFilters(null);
     setSearched(false);
+    setTotal(0);
     setLoading(true);
     try {
       const res = await fetch("/api/listings");
@@ -121,7 +151,26 @@ export default function BuyFlow() {
             Ingen treff. Prøv å fjerne et krav.
           </p>
         )}
+        {!loading && searched && results.length > 0 && (
+          <p className="text-center text-sm mb-6" style={{ color: "#8A7A68" }}>
+            Viser {results.length} av {total}
+          </p>
+        )}
         {loading ? <ResultsGridSkeleton /> : <ResultsGrid results={results} />}
+        {!loading && searched && results.length < total && (
+          <div className="text-center mt-8">
+            <button
+              type="button"
+              onClick={handleShowMore}
+              disabled={loadingMore}
+              className="px-4 py-1.5 rounded-full text-sm border border-[#C4622E] text-[#C4622E] bg-transparent transition-colors hover:bg-[#C4622E] hover:text-[#FBF7F0] focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FBF7F0] outline-none disabled:opacity-50"
+            >
+              {loadingMore
+                ? "Henter..."
+                : `Vis ${Math.min(10, total - results.length)} flere`}
+            </button>
+          </div>
+        )}
       </div>
     </>
   );

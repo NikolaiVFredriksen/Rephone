@@ -22,10 +22,62 @@ function parseJson(text: string) {
   }
 }
 
+function buildWhere(filters: Record<string, unknown>) {
+  const priceFilter: { lte?: number; gte?: number } = {};
+  if (filters.budget) priceFilter.lte = filters.budget as number;
+  if (filters.minPrice) priceFilter.gte = filters.minPrice as number;
+
+  const conditions: Condition[] = Array.isArray(filters.conditions)
+    ? (filters.conditions as string[]).filter((c): c is Condition =>
+        VALID_CONDITIONS.includes(c),
+      )
+    : [];
+
+  return {
+    status: "AKTIV" as const,
+    ...(Object.keys(priceFilter).length ? { price: priceFilter } : {}),
+    ...(conditions.length ? { condition: { in: conditions } } : {}),
+    ...(filters.brand
+      ? { brand: { equals: filters.brand as string, mode: "insensitive" as const } }
+      : {}),
+    ...(filters.model
+      ? { model: { contains: filters.model as string, mode: "insensitive" as const } }
+      : {}),
+    ...(filters.minBatteryHealth
+      ? { batteryHealth: { gte: filters.minBatteryHealth as number } }
+      : {}),
+    ...(filters.minStorage
+      ? { storage: { gte: filters.minStorage as number } }
+      : {}),
+  };
+}
+
 export async function POST(req: Request) {
-  const { query } = await req.json();
-  if (!query) {
+  const body = await req.json();
+  const { query, offset } = body;
+  const skip = Number(offset) > 0 ? Number(offset) : 0;
+
+  if (!query && !body.filters) {
     return NextResponse.json({ error: "Mangler søk" }, { status: 400 });
+  }
+
+  // Ferdige filtre fra en tidligere "Vis flere"-forespørsel: hopp over AI-tolkningen
+  if (body.filters) {
+    const filters = body.filters;
+    const where = buildWhere(filters);
+
+    const [listings, total] = await Promise.all([
+      prisma.listing.findMany({
+        where,
+        orderBy: SORT_ORDER_BY[filters.sortBy] ?? SORT_ORDER_BY.newest,
+        skip,
+        take: 10,
+      }),
+      prisma.listing.count({ where }),
+    ]);
+
+    const results = await withReasons(listings, query ?? "");
+    return NextResponse.json({ filters, results, total });
   }
 
   // Kall 1: fritekst -> strukturerte filtre
@@ -48,41 +100,29 @@ export async function POST(req: Request) {
     parseBlock.type === "text" ? (parseJson(parseBlock.text) ?? {}) : {};
 
   // Steg 2: query mot databasen basert på filtrene
-  const priceFilter: { lte?: number; gte?: number } = {};
-  if (filters.budget) priceFilter.lte = filters.budget;
-  if (filters.minPrice) priceFilter.gte = filters.minPrice;
+  const where = buildWhere(filters);
 
-  const conditions: Condition[] = Array.isArray(filters.conditions)
-    ? filters.conditions.filter((c: string): c is Condition =>
-        VALID_CONDITIONS.includes(c),
-      )
-    : [];
+  const [listings, total] = await Promise.all([
+    prisma.listing.findMany({
+      where,
+      orderBy: SORT_ORDER_BY[filters.sortBy] ?? SORT_ORDER_BY.newest,
+      skip,
+      take: 10,
+    }),
+    prisma.listing.count({ where }),
+  ]);
 
-  const listings = await prisma.listing.findMany({
-    where: {
-      status: "AKTIV",
-      ...(Object.keys(priceFilter).length ? { price: priceFilter } : {}),
-      ...(conditions.length ? { condition: { in: conditions } } : {}),
-      ...(filters.brand
-        ? { brand: { equals: filters.brand, mode: "insensitive" } }
-        : {}),
-      ...(filters.model
-        ? { model: { contains: filters.model, mode: "insensitive" } }
-        : {}),
-      ...(filters.minBatteryHealth
-        ? { batteryHealth: { gte: filters.minBatteryHealth } }
-        : {}),
-      ...(filters.minStorage ? { storage: { gte: filters.minStorage } } : {}),
-    },
-    orderBy: SORT_ORDER_BY[filters.sortBy] ?? SORT_ORDER_BY.newest,
-    take: 10,
-  });
+  const results = await withReasons(listings, query);
+  return NextResponse.json({ filters, results, total });
+}
 
-  if (listings.length === 0) {
-    return NextResponse.json({ filters, results: [] });
-  }
+// Kall 2: treff + søk -> kort begrunnelse per annonse (kun for annonsene på denne siden)
+async function withReasons(
+  listings: Awaited<ReturnType<typeof prisma.listing.findMany>>,
+  query: string,
+) {
+  if (listings.length === 0) return [];
 
-  // Kall 2: treff + søk -> kort begrunnelse per annonse
   const reasoningResponse = await anthropic.messages.create({
     model: "claude-sonnet-4-6",
     max_tokens: 500,
@@ -113,10 +153,8 @@ export async function POST(req: Request) {
       ? (parseJson(reasoningBlock.text) ?? [])
       : [];
 
-  const results = listings.map((listing) => ({
+  return listings.map((listing) => ({
     ...listing,
     reason: reasons.find((r) => r.id === listing.id)?.reason ?? "",
   }));
-
-  return NextResponse.json({ filters, results });
 }
