@@ -108,6 +108,34 @@ IKKE kjørt dette scriptet selv — det ville krevd ekte miljøvariabler jeg
 ikke har, og skrevet til den faktiske databasen. Kjør det selv og bekreft
 at det skriver "Demo-bruker er klar." uten feil.
 
+## Oppgave 4 — Tilbakemelding i header (Du er logget inn som gjest)
+
+**Hvorfor:** Uten dette ser en gjest ut akkurat som en vanlig innlogget
+bruker — ingen signal om at kontoen er delt, eller at annonser de
+publiserer ikke er deres egne i vanlig forstand.
+
+`Header.tsx` stod ikke i listen over filer jeg fikk endre (og
+`LogoutButton.tsx`, som oppgaven ba meg lese, finnes ikke — se avviks-
+notatet øverst). Jeg stoppet og spurte om tillatelse til en minimal
+endring før jeg rørte filen; fikk eksplisitt ja til KUN å legge til
+tilbakemeldingsteksten, ingen andre endringer. Lagt til:
+- `isGuest` beregnes i `Header.tsx` ved å sammenligne
+  `session.user.email` med `process.env.DEMO_USER_EMAIL` (kun en
+  boolsk sammenligning, verdien logges eller vises aldri).
+- Når `isGuest` er sann, vises "Du er logget inn som gjest" i en liten,
+  dempet tekst ved siden av "Logg ut"-knappen. Resten av `Header.tsx`
+  (utlogging, lenke til "Logg inn") er uendret.
+
+**Bør sjekkes visuelt:** logg inn som gjest (oppgave 2) og se at teksten
+"Du er logget inn som gjest" vises i headeren ved siden av "Logg ut". Logg
+inn som en vanlig registrert bruker og bekreft at teksten IKKE vises der.
+
+## Trenger endring i annen fil (fikk eksplisitt tillatelse)
+
+- `src/components/shared/Header.tsx` lå utenfor den opprinnelige fil-
+  listen. Jeg stoppet og spurte før jeg endret den (se oppgave 4) —
+  brukeren godkjente en minimal, avgrenset endring.
+
 **Må settes i Vercel (Project Settings → Environment Variables):**
 `DEMO_USER_EMAIL` og `DEMO_USER_PASSWORD` — begge for alle miljøer der
 gjesteinnlogging skal fungere (Production/Preview/Development etter

@@ -4,6 +4,9 @@ import { redirect } from "next/navigation";
 
 export default async function Header() {
   const session = await auth();
+  const isGuest =
+    !!session?.user?.email &&
+    session.user.email === process.env.DEMO_USER_EMAIL;
 
   return (
     <div
@@ -19,20 +22,27 @@ export default async function Header() {
         </Link>
 
         {session?.user ? (
-          <form
-            action={async () => {
-              "use server";
-              await signOut({ redirect: false });
-              redirect("/");
-            }}
-          >
-            <button
-              type="submit"
-              className="text-sm text-[#8A7A68] transition-colors hover:text-[#C4622E] outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FBF7F0] rounded-sm"
+          <div className="flex items-center gap-3">
+            {isGuest && (
+              <span className="text-xs" style={{ color: "#8A7A68" }}>
+                Du er logget inn som gjest
+              </span>
+            )}
+            <form
+              action={async () => {
+                "use server";
+                await signOut({ redirect: false });
+                redirect("/");
+              }}
             >
-              Logg ut
-            </button>
-          </form>
+              <button
+                type="submit"
+                className="text-sm text-[#8A7A68] transition-colors hover:text-[#C4622E] outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FBF7F0] rounded-sm"
+              >
+                Logg ut
+              </button>
+            </form>
+          </div>
         ) : (
           <Link
             href="/logg-inn"
