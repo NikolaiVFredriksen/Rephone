@@ -109,6 +109,7 @@ export default function SellFlow() {
           draft={draft}
           onDraftChange={setDraft}
           onContinue={() => setStep(3)}
+          onBack={() => setStep(1)}
         />
       )}
 
@@ -124,8 +125,10 @@ export default function SellFlow() {
           >
             <GenerateDescription
               draft={draft}
+              onDraftChange={setDraft}
               images={images}
               onPublish={resetFlow}
+              onBack={() => setStep(2)}
             />
           </div>
         </div>

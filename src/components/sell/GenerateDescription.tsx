@@ -19,15 +19,19 @@ function storageLabel(gb: number) {
 
 export default function GenerateDescription({
   draft,
+  onDraftChange,
   images,
   onPublish,
+  onBack,
 }: {
   draft: Draft;
+  onDraftChange: (draft: Draft) => void;
   images: string[];
   onPublish: () => void;
+  onBack: () => void;
 }) {
   const router = useRouter();
-  const [description, setDescription] = useState(draft.description);
+  const description = draft.description;
   const [loading, setLoading] = useState(true);
   const [generationFailed, setGenerationFailed] = useState(false);
   const [publishing, setPublishing] = useState(false);
@@ -51,20 +55,26 @@ export default function GenerateDescription({
       });
       if (!res.ok) throw new Error(`status ${res.status}`);
       const data = await res.json();
-      setDescription(data.description ?? "");
+      onDraftChange({ ...draft, description: data.description ?? "" });
     } catch (err) {
       console.error("Kunne ikke generere beskrivelse:", err);
-      setDescription("");
+      onDraftChange({ ...draft, description: "" });
       setGenerationFailed(true);
     } finally {
       setLoading(false);
     }
   }
 
-  // Beskrivelsen genereres automatisk når brukeren kommer til steg 3.
+  // Beskrivelsen genereres automatisk første gang brukeren kommer til steg 3.
+  // Går brukeren tilbake til steg 2 og videre igjen, er draft.description
+  // allerede fylt ut (lagret på selve draften), så den skal ikke overskrives.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    generateDescription();
+    if (!draft.description.trim()) {
+      generateDescription();
+    } else {
+      setLoading(false);
+    }
   }, []);
 
   async function publish() {
@@ -181,7 +191,9 @@ export default function GenerateDescription({
           )}
           <textarea
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e) =>
+              onDraftChange({ ...draft, description: e.target.value })
+            }
             rows={4}
             placeholder="Beskriv telefonen..."
             style={{
@@ -205,13 +217,23 @@ export default function GenerateDescription({
           {publishError}
         </p>
       )}
-      <button
-        onClick={publish}
-        disabled={!canPublish}
-        className="w-full rounded-full py-2.5 text-sm bg-[#C4622E] text-[#FBF7F0] transition-colors hover:bg-[#A8521F] outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#C4622E]"
-      >
-        {publishing ? "Publiserer..." : "Publiser annonse"}
-      </button>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={onBack}
+          disabled={publishing}
+          className="rounded-full py-2.5 px-4 text-sm border border-[#E9DCCB] text-[#8A7A68] bg-transparent transition-colors hover:border-[#C4622E] hover:text-[#C4622E] outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          Tilbake
+        </button>
+        <button
+          onClick={publish}
+          disabled={!canPublish}
+          className="flex-1 rounded-full py-2.5 text-sm bg-[#C4622E] text-[#FBF7F0] transition-colors hover:bg-[#A8521F] outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#C4622E]"
+        >
+          {publishing ? "Publiserer..." : "Publiser annonse"}
+        </button>
+      </div>
       {description.trim().length === 0 && !loading && (
         <p className="text-xs text-center mt-2" style={{ color: "#8A4A2E" }}>
           Skriv en beskrivelse før du kan publisere

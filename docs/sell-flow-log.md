@@ -270,3 +270,40 @@ linjeknekk på alle feltnavn.
 (f.eks. "iPhone SE") og gå gjennom steg 1–3. Se spesielt på
 "Batterihelse (%)"-raden i steg 2 — merkelappen kan se trang ut, men skal
 ikke tvinge sidescroll noe sted.
+
+## Oppgave 6 — Tilbake-knapp
+
+**Hvorfor:** Flyten var strengt fremover: ingen vei tilbake fra steg 2 eller
+3 for å rette noe uten å måtte starte helt på nytt (tape beskrivelse, bilder
+og utkast). Det bryter rett og slett med "hva skjer når jeg trykker" hvis
+den eneste knappen som finnes er "fortsett".
+
+Endringer:
+- `EditDraftStep` (steg 2) og `GenerateDescription` (steg 3) får en ny
+  `onBack`-prop, kalt fra `SellFlow` (`setStep(1)` / `setStep(2)`). Begge
+  steg får en dempet "Tilbake"-knapp (outline, `#8A7A68`, IKKE
+  aksentfarget — skal tydelig underordnes "Fortsett"/"Publiser annonse") i
+  en rad til venstre for hovedknappen.
+- Siden `draft` og `input`/`images` allerede lever i `SellFlow` og ikke
+  nulles ut av å endre `step`, beholdes alt som er fylt ut i steg 1 og 2 når
+  du går tilbake — det er ingen egen "lagre før du går tilbake"-logikk som
+  trengs, bare at ingenting sletter state ved navigering.
+- **Fant og rettet et ekte hull i det:** `draft.description` har ALLTID
+  vært et felt på `Draft`-typen, men ble ikke faktisk brukt — `
+  GenerateDescription` hadde sin egen lokale `useState(draft.description)`
+  som aldri ble skrevet tilbake til `draft`. Det betyr at hvis du gikk
+  tilbake fra steg 3 til steg 2 og videre til steg 3 igjen, ville
+  `GenerateDescription` blitt remountet, den lokale staten forsvunnet, og
+  en NY beskrivelse blitt generert automatisk — alt du hadde skrevet eller
+  redigert i beskrivelsen, tapt, uten varsel. Rettet ved å la
+  `GenerateDescription` ta imot `onDraftChange` og lese/skrive
+  `draft.description` direkte i stedet for egen lokal state.
+  Auto-genereringen kjører nå kun hvis `draft.description` er tom ved
+  mount, så en tur til steg 2 og tilbake til steg 3 viser teksten du hadde,
+  ikke et nytt AI-forslag.
+
+**Bør sjekkes visuelt/manuelt:** fra steg 2, trykk "Tilbake" — steg 1 skal
+vise samme beskrivelse og bilder som du skrev. Fra steg 3, rediger
+beskrivelsen, trykk "Tilbake" til steg 2, endre noe der (f.eks. lagring, så
+prisen oppdaterer seg), og gå "Fortsett" til steg 3 igjen — den redigerte
+beskrivelsen skal fortsatt stå der, ikke bli byttet ut med et nytt forslag.

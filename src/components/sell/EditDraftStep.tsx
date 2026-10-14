@@ -9,6 +9,7 @@ type EditDraftStepProps = {
   draft: Draft;
   onDraftChange: (draft: Draft) => void;
   onContinue: () => void;
+  onBack: () => void;
 };
 
 const CONDITIONS = [
@@ -69,6 +70,7 @@ export default function EditDraftStep({
   draft,
   onDraftChange,
   onContinue,
+  onBack,
 }: EditDraftStepProps) {
   const [adjusting, setAdjusting] = useState(false);
   const [priceSource, setPriceSource] = useState<"system" | "user">("system");
@@ -380,13 +382,22 @@ export default function EditDraftStep({
             </button>
           )}
         </div>
-        <button
-          onClick={onContinue}
-          disabled={!canContinue}
-          className="w-full rounded-full py-2.5 text-sm bg-[#C4622E] text-[#FBF7F0] transition-colors hover:bg-[#A8521F] outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#C4622E]"
-        >
-          Fortsett
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={onBack}
+            className="rounded-full py-2.5 px-4 text-sm border border-[#E9DCCB] text-[#8A7A68] bg-transparent transition-colors hover:border-[#C4622E] hover:text-[#C4622E] outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+          >
+            Tilbake
+          </button>
+          <button
+            onClick={onContinue}
+            disabled={!canContinue}
+            className="flex-1 rounded-full py-2.5 text-sm bg-[#C4622E] text-[#FBF7F0] transition-colors hover:bg-[#A8521F] outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#C4622E]"
+          >
+            Fortsett
+          </button>
+        </div>
         {!canContinue && (
           <p className="text-xs text-center mt-2" style={{ color: "#8A4A2E" }}>
             Merke, modell, tilstand og pris må være fylt ut for å fortsette
