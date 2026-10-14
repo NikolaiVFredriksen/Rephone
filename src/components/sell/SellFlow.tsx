@@ -5,17 +5,10 @@ import ImageUploader from "./ImageUploader";
 import EditDraftStep from "./EditDraftStep";
 import GenerateDescription from "./GenerateDescription";
 import StepIndicator from "./StepIndicator";
+import DraftSkeleton from "./DraftSkeleton";
+import type { Draft } from "./types";
 
-type Draft = {
-  brand: string;
-  model: string;
-  condition: string;
-  price: number;
-  description: string;
-  reasoning: string;
-  batteryHealth: number | null;
-  storage: number | null;
-};
+const MIN_DESCRIPTION_LENGTH = 3;
 
 export default function SellFlow() {
   const [input, setInput] = useState("");
@@ -27,7 +20,7 @@ export default function SellFlow() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (input.trim().length < MIN_DESCRIPTION_LENGTH) return;
 
     setError("");
     setLoading(true);
@@ -71,15 +64,26 @@ export default function SellFlow() {
   return (
     <div className="w-full max-w-3xl mt-12">
       <StepIndicator step={step} />
-      {step === 1 && (
+      {step === 1 && !loading && (
         <div className="w-full max-w-2xl mx-auto text-center fade-in-up">
+          <h2
+            className="text-lg font-medium mb-1"
+            style={{ color: "#3A2E22" }}
+          >
+            Hva vil du selge?
+          </h2>
+          <p className="text-sm mb-4" style={{ color: "#8A7A68" }}>
+            Skriv modell, tilstand, lagring og batterihelse, så fyller vi ut
+            resten.
+          </p>
           <form onSubmit={handleSubmit}>
-            <input
+            <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Hva vil du selge?"
+              rows={3}
+              placeholder="iPhone 13 Pro, 256 GB, pent brukt, batterihelse 88 prosent"
               style={{ border: "1px solid #E9DCCB", background: "white" }}
-              className="w-full rounded-full px-6 py-4 text-sm outline-none mb-4 transition-shadow focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FBF7F0]"
+              className="w-full rounded-2xl px-6 py-4 text-sm outline-none mb-4 resize-none transition-shadow focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FBF7F0]"
             />
 
             <ImageUploader images={images} onImagesChange={setImages} />
@@ -87,25 +91,17 @@ export default function SellFlow() {
             <div className="flex gap-2 justify-center">
               <button
                 type="submit"
-                className="px-4 py-1.5 rounded-full text-sm border border-[#C4622E] text-[#C4622E] bg-transparent transition-colors hover:bg-[#C4622E] hover:text-[#FBF7F0] focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FBF7F0] outline-none"
+                disabled={input.trim().length < MIN_DESCRIPTION_LENGTH}
+                className="px-4 py-1.5 rounded-full text-sm border border-[#C4622E] text-[#C4622E] bg-transparent transition-colors hover:bg-[#C4622E] hover:text-[#FBF7F0] focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FBF7F0] outline-none disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-[#C4622E]"
               >
-                Se forslag til annonse
+                Lag annonseutkast
               </button>
             </div>
           </form>
         </div>
       )}
 
-      {loading && (
-        <p
-          style={{ color: "#8A7A68" }}
-          className="text-center text-sm"
-          role="status"
-          aria-live="polite"
-        >
-          Henter...
-        </p>
-      )}
+      {loading && <DraftSkeleton />}
       {error && <p className="text-center text-sm text-red-600">{error}</p>}
 
       {step === 2 && draft && (
@@ -113,6 +109,7 @@ export default function SellFlow() {
           draft={draft}
           onDraftChange={setDraft}
           onContinue={() => setStep(3)}
+          onBack={() => setStep(1)}
         />
       )}
 
@@ -128,8 +125,10 @@ export default function SellFlow() {
           >
             <GenerateDescription
               draft={draft}
+              onDraftChange={setDraft}
               images={images}
               onPublish={resetFlow}
+              onBack={() => setStep(2)}
             />
           </div>
         </div>

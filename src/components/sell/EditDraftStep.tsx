@@ -1,23 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Spinner from "../shared/Spinner";
-
-type Draft = {
-  brand: string;
-  model: string;
-  condition: string;
-  price: number;
-  description: string;
-  reasoning: string;
-  batteryHealth: number | null;
-  storage: number | null;
-};
+import Badge from "../shared/Badge";
+import type { Draft } from "./types";
 
 type EditDraftStepProps = {
   draft: Draft;
   onDraftChange: (draft: Draft) => void;
   onContinue: () => void;
+  onBack: () => void;
 };
 
 const CONDITIONS = [
@@ -29,56 +21,189 @@ const CONDITIONS = [
 
 const STORAGE_OPTIONS = [64, 128, 256, 512, 1024];
 
+const DEBOUNCE_MS = 600;
+
+type PriceMode = "full" | "base";
+
+type Baseline = {
+  price: number;
+  storage: number | null;
+  batteryHealth: number | null;
+};
+
 function storageLabel(gb: number) {
   return gb === 1024 ? "1TB" : `${gb}GB`;
+}
+
+function fieldStyle(filled: boolean): React.CSSProperties {
+  return {
+    border: filled ? "1px solid #E9DCCB" : "1px solid #C4622E",
+    background: "#FBF7F0",
+    borderRadius: 8,
+    padding: "6px 10px",
+    fontSize: 12,
+    width: "100%",
+    color: "#3A2E22",
+  };
+}
+
+function FieldLabel({ text, filled }: { text: string; filled: boolean }) {
+  return (
+    <div className="flex items-center justify-between mb-1">
+      <p className="text-xs" style={{ color: "#A69581" }}>
+        {text}
+      </p>
+      <Badge tone={filled ? "suggested" : "missing"}>
+        {filled ? "Foreslått" : "Fyll inn"}
+      </Badge>
+    </div>
+  );
+}
+
+function isValidBatteryHealth(value: number | null) {
+  return (
+    value === null || (!Number.isNaN(value) && value >= 0 && value <= 100)
+  );
 }
 
 export default function EditDraftStep({
   draft,
   onDraftChange,
   onContinue,
+  onBack,
 }: EditDraftStepProps) {
   const [adjusting, setAdjusting] = useState(false);
+  const [priceError, setPriceError] = useState("");
 
-  async function refreshPrice(updated: Draft) {
+  const draftRef = useRef(draft);
+  useEffect(() => {
+    draftRef.current = draft;
+  }, [draft]);
+
+  const baselineRef = useRef<Baseline>({
+    price: draft.price,
+    storage: draft.storage,
+    batteryHealth: draft.batteryHealth,
+  });
+  const abortRef = useRef<AbortController | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      abortRef.current?.abort();
+    };
+  }, []);
+
+  async function refreshPrice(updated: Draft, mode: PriceMode) {
     if (!updated.brand || !updated.model || !updated.condition) return;
+    if (!isValidBatteryHealth(updated.batteryHealth)) return;
+
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
 
     setAdjusting(true);
+    setPriceError("");
+
+    const baseline = baselineRef.current;
+    const body: Record<string, unknown> = {
+      brand: updated.brand,
+      model: updated.model,
+      condition: updated.condition,
+      storage: updated.storage,
+      batteryHealth: updated.batteryHealth,
+    };
+    if (
+      mode === "base" &&
+      typeof baseline.price === "number" &&
+      !Number.isNaN(baseline.price)
+    ) {
+      body.basePrice = baseline.price;
+      body.baseStorage = baseline.storage;
+      body.baseBatteryHealth = baseline.batteryHealth;
+    }
+
     try {
       const res = await fetch("/api/adjust-price", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          brand: updated.brand,
-          model: updated.model,
-          condition: updated.condition,
-          storage: updated.storage,
-          batteryHealth: updated.batteryHealth,
-        }),
+        body: JSON.stringify(body),
+        signal: controller.signal,
       });
-      const data = await res.json();
-      if (data.price) {
-        onDraftChange({
-          ...updated,
-          price: data.price,
-          reasoning: data.reasoning ?? updated.reasoning,
-        });
+
+      if (res.status === 404) {
+        setPriceError("Fant ikke grunnlag for ny pris, juster selv");
+        return;
       }
-    } catch {
-      // stille feil, beholder eksisterende pris
+      if (!res.ok) {
+        console.error("Kunne ikke oppdatere prisforslag:", res.status);
+        return;
+      }
+
+      const data = await res.json();
+      if (typeof data.price !== "number" || Number.isNaN(data.price)) return;
+
+      baselineRef.current = {
+        price: data.price,
+        storage: updated.storage,
+        batteryHealth: updated.batteryHealth,
+      };
+
+      onDraftChange({
+        ...draftRef.current,
+        price: data.price,
+        reasoning: data.reasoning ?? draftRef.current.reasoning,
+      });
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") return;
+      console.error("Kunne ikke oppdatere prisforslag:", err);
     } finally {
-      setAdjusting(false);
+      if (abortRef.current === controller) setAdjusting(false);
     }
   }
 
-  function handleFieldChange(
+  function applyFieldUpdate(field: keyof Draft, value: string | number | null) {
+    const updated = { ...draftRef.current, [field]: value };
+    onDraftChange(updated);
+    return updated;
+  }
+
+  function handleImmediateChange(
     field: keyof Draft,
     value: string | number | null,
+    mode: PriceMode,
   ) {
-    const updated = { ...draft, [field]: value };
-    onDraftChange(updated);
-    refreshPrice(updated);
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+    const updated = applyFieldUpdate(field, value);
+    refreshPrice(updated, mode);
   }
+
+  function handleDebouncedChange(
+    field: keyof Draft,
+    value: string | number | null,
+    mode: PriceMode,
+  ) {
+    applyFieldUpdate(field, value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      refreshPrice(draftRef.current, mode);
+    }, DEBOUNCE_MS);
+  }
+
+  function handlePriceInputChange(value: string) {
+    const parsed = Number(value);
+    onDraftChange({
+      ...draftRef.current,
+      price: Number.isNaN(parsed) ? 0 : parsed,
+    });
+  }
+
+  const canContinue =
+    !!draft.brand && !!draft.model && !!draft.condition && draft.price > 0;
 
   return (
     <div className="max-w-xl mx-auto mt-8 fade-in-up">
@@ -90,69 +215,42 @@ export default function EditDraftStep({
           padding: 20,
         }}
       >
+        <h2 className="text-lg font-medium mb-1" style={{ color: "#3A2E22" }}>
+          Sjekk utkastet
+        </h2>
         <p className="text-xs mb-4" style={{ color: "#8A7A68" }}>
-          AI-forslag, juster det som ikke stemmer
+          Vi har fylt ut dette ut fra beskrivelsen din. Rett det som er feil.
         </p>
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
-            <p className="text-xs mb-1" style={{ color: "#A69581" }}>
-              Merke
-            </p>
+            <FieldLabel text="Merke" filled={!!draft.brand} />
             <input
               value={draft.brand}
               onChange={(e) =>
-                onDraftChange({ ...draft, brand: e.target.value })
+                handleDebouncedChange("brand", e.target.value, "full")
               }
-              onBlur={() => refreshPrice(draft)}
-              style={{
-                border: "1px solid #E9DCCB",
-                background: "#FBF7F0",
-                borderRadius: 8,
-                padding: "6px 10px",
-                fontSize: 12,
-                width: "100%",
-                color: "#3A2E22",
-              }}
+              style={fieldStyle(!!draft.brand)}
             />
           </div>
           <div>
-            <p className="text-xs mb-1" style={{ color: "#A69581" }}>
-              Modell
-            </p>
+            <FieldLabel text="Modell" filled={!!draft.model} />
             <input
               value={draft.model}
               onChange={(e) =>
-                onDraftChange({ ...draft, model: e.target.value })
+                handleDebouncedChange("model", e.target.value, "full")
               }
-              onBlur={() => refreshPrice(draft)}
-              style={{
-                border: "1px solid #E9DCCB",
-                background: "#FBF7F0",
-                borderRadius: 8,
-                padding: "6px 10px",
-                fontSize: 12,
-                width: "100%",
-                color: "#3A2E22",
-              }}
+              style={fieldStyle(!!draft.model)}
             />
           </div>
           <div>
-            <p className="text-xs mb-1" style={{ color: "#A69581" }}>
-              Tilstand
-            </p>
+            <FieldLabel text="Tilstand" filled={!!draft.condition} />
             <select
               value={draft.condition}
-              onChange={(e) => handleFieldChange("condition", e.target.value)}
+              onChange={(e) =>
+                handleImmediateChange("condition", e.target.value, "full")
+              }
               disabled={adjusting}
-              style={{
-                border: "1px solid #E9DCCB",
-                background: "#FBF7F0",
-                borderRadius: 8,
-                padding: "6px 10px",
-                fontSize: 12,
-                width: "100%",
-                color: "#3A2E22",
-              }}
+              style={fieldStyle(!!draft.condition)}
             >
               <option value="">Velg tilstand</option>
               {CONDITIONS.map((c) => (
@@ -163,47 +261,18 @@ export default function EditDraftStep({
             </select>
           </div>
           <div>
-            <p className="text-xs mb-1" style={{ color: "#A69581" }}>
-              Pris (kr)
-            </p>
-            <input
-              value={String(draft.price)}
-              onChange={(e) =>
-                onDraftChange({ ...draft, price: Number(e.target.value) })
-              }
-              style={{
-                border: "1px solid #E9DCCB",
-                background: "#FBF7F0",
-                borderRadius: 8,
-                padding: "6px 10px",
-                fontSize: 12,
-                width: "100%",
-                color: "#3A2E22",
-              }}
-            />
-          </div>
-          <div>
-            <p className="text-xs mb-1" style={{ color: "#A69581" }}>
-              Lagring
-            </p>
+            <FieldLabel text="Lagring" filled={!!draft.storage} />
             <select
               value={draft.storage ?? ""}
               onChange={(e) =>
-                handleFieldChange(
+                handleImmediateChange(
                   "storage",
                   e.target.value ? Number(e.target.value) : null,
+                  "base",
                 )
               }
               disabled={adjusting}
-              style={{
-                border: "1px solid #E9DCCB",
-                background: "#FBF7F0",
-                borderRadius: 8,
-                padding: "6px 10px",
-                fontSize: 12,
-                width: "100%",
-                color: "#3A2E22",
-              }}
+              style={fieldStyle(!!draft.storage)}
             >
               <option value="">Velg lagring</option>
               {STORAGE_OPTIONS.map((gb) => (
@@ -214,28 +283,21 @@ export default function EditDraftStep({
             </select>
           </div>
           <div>
-            <p className="text-xs mb-1" style={{ color: "#A69581" }}>
-              Batterihelse (%)
-            </p>
+            <FieldLabel
+              text="Batterihelse (%)"
+              filled={draft.batteryHealth !== null}
+            />
             <input
               placeholder="f.eks. 91"
               value={draft.batteryHealth ?? ""}
               onChange={(e) =>
-                onDraftChange({
-                  ...draft,
-                  batteryHealth: e.target.value ? Number(e.target.value) : null,
-                })
+                handleDebouncedChange(
+                  "batteryHealth",
+                  e.target.value ? Number(e.target.value) : null,
+                  "base",
+                )
               }
-              onBlur={() => refreshPrice(draft)}
-              style={{
-                border: "1px solid #E9DCCB",
-                background: "#FBF7F0",
-                borderRadius: 8,
-                padding: "6px 10px",
-                fontSize: 12,
-                width: "100%",
-                color: "#3A2E22",
-              }}
+              style={fieldStyle(draft.batteryHealth !== null)}
             />
           </div>
         </div>
@@ -247,31 +309,73 @@ export default function EditDraftStep({
             marginBottom: 16,
           }}
         >
-          <div
-            role="status"
-            aria-live="polite"
-            className="flex items-center gap-2 text-xs"
-            style={{ color: "#8A4A2E" }}
-          >
-            {adjusting && <Spinner size={12} />}
-            <span aria-hidden={adjusting}>
-              {adjusting ? "Oppdaterer prisforslag..." : draft.reasoning}
-            </span>
-            {adjusting && <span className="sr-only">Oppdaterer pris...</span>}
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-xs" style={{ color: "#8A4A2E" }}>
+              Foreslått pris
+            </p>
+            {adjusting && (
+              <div
+                role="status"
+                aria-live="polite"
+                className="flex items-center gap-1.5"
+              >
+                <Spinner size={11} />
+                <span className="sr-only">Oppdaterer pris...</span>
+              </div>
+            )}
           </div>
-          <p
-            className="text-lg font-medium mt-1 transition-opacity"
-            style={{ color: "#C4622E", opacity: adjusting ? 0.5 : 1 }}
+          <div
+            className="flex items-baseline gap-1.5 transition-opacity"
+            style={{ opacity: adjusting ? 0.5 : 1 }}
           >
-            {draft.price.toLocaleString("no")} kr
+            <input
+              value={String(draft.price)}
+              onChange={(e) => handlePriceInputChange(e.target.value)}
+              inputMode="numeric"
+              aria-label="Foreslått pris i kroner"
+              className="text-lg font-medium outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-1"
+              style={{
+                color: "#C4622E",
+                width: `${Math.max(String(draft.price).length, 2) + 1}ch`,
+                background: "#FBF7F0",
+                border: "1px solid #C4622E",
+                borderRadius: 6,
+                padding: "1px 6px",
+              }}
+            />
+            <span className="text-lg font-medium" style={{ color: "#C4622E" }}>
+              kr
+            </span>
+          </div>
+          <p className="text-xs mt-1" style={{ color: "#8A4A2E" }}>
+            {priceError
+              ? priceError
+              : adjusting
+                ? "Oppdaterer prisforslag..."
+                : draft.reasoning}
           </p>
         </div>
-        <button
-          onClick={onContinue}
-          className="w-full rounded-full py-2.5 text-sm bg-[#C4622E] text-[#FBF7F0] transition-colors hover:bg-[#A8521F] outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-        >
-          Fortsett
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={onBack}
+            className="rounded-full py-2.5 px-4 text-sm border border-[#E9DCCB] text-[#8A7A68] bg-transparent transition-colors hover:border-[#C4622E] hover:text-[#C4622E] outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+          >
+            Tilbake
+          </button>
+          <button
+            onClick={onContinue}
+            disabled={!canContinue}
+            className="flex-1 rounded-full py-2.5 text-sm bg-[#C4622E] text-[#FBF7F0] transition-colors hover:bg-[#A8521F] outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#C4622E]"
+          >
+            Fortsett
+          </button>
+        </div>
+        {!canContinue && (
+          <p className="text-xs text-center mt-2" style={{ color: "#8A4A2E" }}>
+            Merke, modell, tilstand og pris må være fylt ut for å fortsette
+          </p>
+        )}
       </div>
     </div>
   );
