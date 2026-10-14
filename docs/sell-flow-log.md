@@ -171,10 +171,14 @@ i".
 
 Rettet: bredden regnes nå ut fra faktisk antall siffer i prisen
 (`${String(draft.price).length}ch`, minimum 2), så det ikke blir overflødig
-tomrom. Lagt til en stiplet understreking (`border-bottom: 1px dashed
-#C4622E`) som alltid er synlig, ikke bare ved fokus — en lett, konsekvent
-måte å signalisere "dette er redigerbart" på, uten en tung boks-kant som
-ville sett unaturlig ut inni den allerede fargede prisboksen.
+tomrom.
+
+Første forsøk var en stiplet understreking i samme farge som teksten
+(`#C4622E` på `#C4622E`) — for lite kontrast, fortsatt ikke tydelig nok som
+tilbakemelding viste. Rettet videre: input-feltet har nå hvit bakgrunn og
+full kant i aksentfarge (samme mønster som de andre feltene i skjemaet,
+bare i miniatyr), som skiller det klart fra den rosa boksen det sitter i —
+i stedet for å stole på en farge-på-samme-farge-detalj mange lett overser.
 
 ## Trenger endring i API
 

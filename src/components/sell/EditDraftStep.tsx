@@ -356,12 +356,14 @@ export default function EditDraftStep({
               onChange={(e) => handlePriceInputChange(e.target.value)}
               inputMode="numeric"
               aria-label="Foreslått pris i kroner"
-              className="text-lg font-medium bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] rounded"
+              className="text-lg font-medium outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-1"
               style={{
                 color: "#C4622E",
-                width: `${Math.max(String(draft.price).length, 2)}ch`,
-                borderBottom: "1px dashed #C4622E",
-                paddingBottom: 1,
+                width: `${Math.max(String(draft.price).length, 2) + 1}ch`,
+                background: "white",
+                border: "1px solid #C4622E",
+                borderRadius: 6,
+                padding: "1px 6px",
               }}
             />
             <span className="text-lg font-medium" style={{ color: "#C4622E" }}>
