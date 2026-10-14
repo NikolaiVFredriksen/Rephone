@@ -52,6 +52,9 @@ function filterViolations(l: Listing, f: Record<string, unknown>): string[] {
   if (f.budget && l.price > Number(f.budget)) {
     v.push(`pris ${l.price} over budsjett ${f.budget}`);
   }
+  if (f.minPrice && l.price < Number(f.minPrice)) {
+    v.push(`pris ${l.price} under minPrice ${f.minPrice}`);
+  }
   if (f.brand && l.brand.toLowerCase() !== String(f.brand).toLowerCase()) {
     v.push(`merke ${l.brand}, ønsket ${f.brand}`);
   }

@@ -106,5 +106,36 @@
     "expected": { "brand": "Samsung", "model": "Galaxy S24" },
     "onlyModelsContaining": ["Galaxy S24"],
     "minResults": 1
+  },
+  {
+    "id": "minprice-over-kr",
+    "input": "iPhone over 4000kr",
+    "expected": { "brand": "Apple", "minPrice": 4000 },
+    "onlyBrands": ["Apple"],
+    "minResults": 1
+  },
+  {
+    "id": "minprice-k-shorthand",
+    "input": "telefon over 4k",
+    "expected": { "minPrice": 4000 },
+    "minResults": 1
+  },
+  {
+    "id": "minprice-dash-notation",
+    "input": "telefon fra 4000,-",
+    "expected": { "minPrice": 4000 },
+    "minResults": 1
+  },
+  {
+    "id": "minprice-spaced-thousand",
+    "input": "telefon fra 4 000 kr",
+    "expected": { "minPrice": 4000 },
+    "minResults": 1
+  },
+  {
+    "id": "minprice-written-out",
+    "input": "telefon fra fire tusen kroner",
+    "expected": { "minPrice": 4000 },
+    "minResults": 1
   }
 ]

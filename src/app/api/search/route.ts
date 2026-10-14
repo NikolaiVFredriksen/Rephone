@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     max_tokens: 300,
     temperature: 0,
     system:
-      'Du tolker norske fritekst-søk etter brukte telefoner til JSON. Svar KUN med JSON, ingen annen tekst. Felt: budget (maks pris i kr, tall eller null), brand ("Apple", "Samsung", "Google", "Xiaomi", eller null), model (modellnavn skrevet slik det står i annonser, eller null), minBatteryHealth (minimum batterihelse i prosent hvis nevnt, f.eks "over 80%" gir 80, ellers null), minStorage (minimum lagring i GB hvis nevnt, f.eks "minst 256GB" gir 256 og "1 TB" gir 1024, ellers null), priorities (liste med andre stikkord som ikke fanges av feltene over). Regler for model: Apple skrives med "iPhone" foran, f.eks "iPhone 13", "iPhone 13 Pro", "iPhone 13 Pro Max". Samsung skrives f.eks "Galaxy S24". Google skrives f.eks "Pixel 8". Xiaomi skrives f.eks "13" eller "Redmi Note 12". Skriv kun det brukeren faktisk nevner: "13" gir "iPhone 13", "13 pro" gir "iPhone 13 Pro", "13 pro max" gir "iPhone 13 Pro Max". Et tall alene uten merke tolkes som iPhone. Pro eller Pro Max sammen med et tall tolkes som iPhone. "Xiaomi 13" gir brand "Xiaomi" og model "13" (ikke "Xiaomi 13"), siden Xiaomi ikke har et eget modellnavn-prefiks. Ignorer mellomrom, store/små bokstaver og skrivefeil når du gjenkjenner modell, og normaliser alltid til riktig skriveform: "iphone13pro", "13promax" og "iPhone 13 pro maks" betyr alle "iPhone 13 Pro Max" ("maks" er norsk for "Max"). Samsung kan skrives kort som "s" pluss tall, med eller uten mellomrom: "s24" og "galaxy s 24" betyr begge "Galaxy S24" (ingen mellomrom mellom S og tallet i svaret). Google kan skrives kort som "pixel" pluss tall uten mellomrom: "pixel8" betyr "Pixel 8" (mellomrom i svaret). Hvis modellen avslører merket (iPhone gir Apple, Galaxy gir Samsung, Pixel gir Google), sett brand også. Ikke gjett en modell som ikke er nevnt. "godt batteri" gir minBatteryHealth 80.',
+      'Du tolker norske fritekst-søk etter brukte telefoner til JSON. Svar KUN med JSON, ingen annen tekst. Felt: budget (maks pris i kr, tall eller null), minPrice (minste pris i kr hvis nevnt, f.eks "over 4000kr", "4k", "4000,-", "4 000 kr" og "fire tusen" gir alle 4000, ellers null), brand ("Apple", "Samsung", "Google", "Xiaomi", eller null), model (modellnavn skrevet slik det står i annonser, eller null), minBatteryHealth (minimum batterihelse i prosent hvis nevnt, f.eks "over 80%" gir 80, ellers null), minStorage (minimum lagring i GB hvis nevnt, f.eks "minst 256GB" gir 256 og "1 TB" gir 1024, ellers null), priorities (liste med andre stikkord som ikke fanges av feltene over). Regler for model: Apple skrives med "iPhone" foran, f.eks "iPhone 13", "iPhone 13 Pro", "iPhone 13 Pro Max". Samsung skrives f.eks "Galaxy S24". Google skrives f.eks "Pixel 8". Xiaomi skrives f.eks "13" eller "Redmi Note 12". Skriv kun det brukeren faktisk nevner: "13" gir "iPhone 13", "13 pro" gir "iPhone 13 Pro", "13 pro max" gir "iPhone 13 Pro Max". Et tall alene uten merke tolkes som iPhone. Pro eller Pro Max sammen med et tall tolkes som iPhone. "Xiaomi 13" gir brand "Xiaomi" og model "13" (ikke "Xiaomi 13"), siden Xiaomi ikke har et eget modellnavn-prefiks. Ignorer mellomrom, store/små bokstaver og skrivefeil når du gjenkjenner modell, og normaliser alltid til riktig skriveform: "iphone13pro", "13promax" og "iPhone 13 pro maks" betyr alle "iPhone 13 Pro Max" ("maks" er norsk for "Max"). Samsung kan skrives kort som "s" pluss tall, med eller uten mellomrom: "s24" og "galaxy s 24" betyr begge "Galaxy S24" (ingen mellomrom mellom S og tallet i svaret). Google kan skrives kort som "pixel" pluss tall uten mellomrom: "pixel8" betyr "Pixel 8" (mellomrom i svaret). Hvis modellen avslører merket (iPhone gir Apple, Galaxy gir Samsung, Pixel gir Google), sett brand også. Ikke gjett en modell som ikke er nevnt. "godt batteri" gir minBatteryHealth 80.',
     messages: [
       {
         role: "user",
@@ -39,10 +39,14 @@ export async function POST(req: Request) {
     parseBlock.type === "text" ? (parseJson(parseBlock.text) ?? {}) : {};
 
   // Steg 2: query mot databasen basert på filtrene
+  const priceFilter: { lte?: number; gte?: number } = {};
+  if (filters.budget) priceFilter.lte = filters.budget;
+  if (filters.minPrice) priceFilter.gte = filters.minPrice;
+
   const listings = await prisma.listing.findMany({
     where: {
       status: "AKTIV",
-      ...(filters.budget ? { price: { lte: filters.budget } } : {}),
+      ...(Object.keys(priceFilter).length ? { price: priceFilter } : {}),
       ...(filters.brand
         ? { brand: { equals: filters.brand, mode: "insensitive" } }
         : {}),

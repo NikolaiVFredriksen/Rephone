@@ -8,6 +8,7 @@ import type { Listing } from "../shared/ListingCard";
 
 type Filters = {
   budget?: number;
+  minPrice?: number;
   brand?: string;
   model?: string;
   minBatteryHealth?: number;

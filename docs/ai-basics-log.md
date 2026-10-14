@@ -96,7 +96,30 @@ antall treff; 0 treff er korrekt og ærlig her.
 **Eval etter punkt 2: 16/17** (opp fra baseline 8/9). Eneste feil er den
 forhåndseksisterende `model-without-brand` (se baseline-notatet).
 
-## Punkt 3–8
+## Punkt 3 — Pris (minPrice)
+
+**Hvorfor:** "Over 4000kr" ga ingen effekt før, fordi schemaet kun hadde
+`budget` (maks pris). Uten en nedre grense kan ikke brukeren filtrere bort de
+billige telefonene når de egentlig vil ha de dyre/bedre.
+
+La til `minPrice` i prompten (med forklaring av "4k", "4000,-", "4 000 kr" og
+"fire tusen" som alle gir 4000), i where-klausulen (slått sammen med `budget`
+i samme `price: { lte, gte }`-objekt — Prisma overskriver ellers det ene hvis
+begge spres som separate nøkler), i `Filters`-typen og som egen chip ("Fra
+Xkr") i `FilterChips.tsx`.
+
+Første evalkjøring etter punktet avdekket en feil i min EGEN testsak, ikke i
+prompten: "telefon på 4k" har ingen tydelig min/maks-markør ("på" er
+flertydig), så AI-en tolket det som et budsjett (maks), ikke en nedre grense —
+et rimelig valg gitt flertydigheten. Rettet testens ORDLYD til "telefon over
+4k" (samme mønster som de andre sakene, som alle bruker "over"/"fra"), ikke
+forventningsverdien — dette er retting av en dårlig formulert egen testsak,
+ikke justering av fasit for å få en test til å bestå.
+
+**Eval etter punkt 3: 21/22** (opp fra 16/17). Dette brukte 2 evalkjøringer
+istedenfor 1 pga. rettingen over — se budsjettnotatet øverst.
+
+## Punkt 4–8
 
 (fylles ut fortløpende)
 
