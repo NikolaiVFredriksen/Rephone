@@ -46,6 +46,9 @@ export default function ImageUploader({
 
   return (
     <div className="flex flex-col items-center gap-2 mt-2 mb-4">
+      <p className="text-xs" style={{ color: "#8A7A68" }}>
+        Bilder (valgfritt, opptil 3)
+      </p>
       <div className="flex justify-center gap-3">
         {[0, 1, 2].map((i) => (
           <label
@@ -56,11 +59,12 @@ export default function ImageUploader({
               background: "white",
               borderRadius: 12,
               display: "flex",
+              flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
+              gap: 4,
               cursor: "pointer",
               color: "#C9A98D",
-              fontSize: 24,
               overflow: "hidden",
             }}
             className="border border-dashed border-[#C9A98D] transition-colors hover:border-[#C4622E] hover:text-[#C4622E] focus-within:ring-2 focus-within:ring-[#C4622E] focus-within:ring-offset-2 focus-within:ring-offset-[#FBF7F0]"
@@ -78,20 +82,23 @@ export default function ImageUploader({
             ) : uploading ? (
               <Spinner size={16} />
             ) : (
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 18 18"
-                fill="none"
-                aria-hidden="true"
-              >
-                <path
-                  d="M9 2v14M2 9h14"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
-              </svg>
+              <>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 18 18"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M9 2v14M2 9h14"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <span className="text-[10px]">Legg til</span>
+              </>
             )}
             <input
               type="file"
