@@ -59,3 +59,40 @@ slots, og at StepIndicator viser haker på fullførte steg og en synlig ring
 rundt det nåværende (uten hover-effekt noe sted på selve indikatoren).
 
 ## Oppgave 2 — Steg 2 (EditDraftStep)
+
+**Hvorfor:** "AI-forslag, juster det som ikke stemmer" sier ikke hvilke felt
+som faktisk kommer fra AI-en og hvilke som er tomme og må fylles ut manuelt —
+brukeren må gjette. Og "Fortsett" var alltid klikkbar, selv med tomme felt
+som gjør annonsen upubliserbar lenger ned i flyten.
+
+Endringer:
+- Overskrift "Sjekk utkastet" og hjelpetekst "Vi har fylt ut dette ut fra
+  beskrivelsen din. Rett det som er feil." erstatter den gamle
+  énlinjesteksten.
+- Hvert felt har nå en liten `Badge` ved siden av label: "Foreslått" (grønn-
+  aktig/aksent bakgrunn) når feltet har en verdi, "Fyll inn" (outline i
+  aksentfarge) når det er tomt/null. Tomme felt får samtidig en tydelig
+  aksentfarget kant (`#C4622E`) i stedet for standard `#E9DCCB`, så de er
+  synlige uten å måtte lese merkelappen.
+- "Fortsett"-knappen er `disabled` til merke, modell, tilstand og pris
+  (pris > 0) er satt — med en liten forklarende tekst under knappen når den
+  er deaktivert, slik at brukeren vet HVORFOR, ikke bare at den ikke virker.
+- Prisfeltets label endret til "Foreslått pris", med en diskret `Spinner`
+  (11px, kun ikon + skjermleser-tekst, ingen synlig "Oppdaterer..."-tekst
+  oppå selve prisen) ved siden av label mens `adjusting` er sann. Den
+  forklarende linjen under prisen viser fortsatt "Oppdaterer
+  prisforslag..." mens den venter, ellers AI-ens begrunnelse.
+- "Mens utkastet lages... vises et skeleton" og "Steg 2 vises ikke før
+  svaret er ferdig" var allerede løst i oppgave 1 (se der): `DraftSkeleton`
+  vises i `SellFlow` mens `/api/price-suggestion` pågår, og
+  `EditDraftStep` rendres aldri før `step === 2 && draft` — altså aldri før
+  svaret er ferdig og lagret i `draft`.
+- Byttet den lokale `Draft`-typen til import fra `./types` (se
+  infrastruktur-notatet øverst).
+
+**Bør sjekkes visuelt:** at "Foreslått"/"Fyll inn"-merkelappene vises riktig
+per felt rett etter at utkastet er lastet (batterihelse er ofte "Fyll inn"
+siden beskrivelsen sjelden nevner det), at tomme felt har synlig
+aksentfarget kant, at "Fortsett" er synlig dempet og viser forklaringsteksten
+når f.eks. tilstand ikke er valgt, og at den lille spinneren ved "Foreslått
+pris" dukker opp når du endrer tilstand/lagring (uten å dekke prisen helt).
