@@ -1,4 +1,5 @@
 import Link from "next/link";
+import GuestButton from "../shared/GuestButton";
 
 export default function SellGate() {
   return (
@@ -30,12 +31,7 @@ export default function SellGate() {
           >
             Opprett konto
           </Link>
-          <button
-            type="button"
-            className="w-full rounded-full py-2.5 text-sm text-[#8A7A68] bg-transparent transition-colors hover:text-[#C4622E] outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-          >
-            Fortsett som gjest
-          </button>
+          <GuestButton />
         </div>
       </div>
     </div>

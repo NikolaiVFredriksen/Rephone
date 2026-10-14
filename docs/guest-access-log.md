@@ -39,3 +39,43 @@ gyldig TSX, bare ikke funksjonell enda.
 "Logg inn"/"Opprett konto" faktisk navigerer dit de skal. Logg inn og
 bekreft at "Selg" nå viser det vanlige salgsskjemaet som før. Bekreft at
 "Kjøp" fungerer uendret, innlogget eller ikke.
+
+## Oppgave 2 — Gjesteinnlogging
+
+**Hvorfor:** "Fortsett som gjest" uten faktisk innlogging bak knappen hadde
+vært en blindvei. `auth.ts` eksporterer `signIn`, så jeg brukte den direkte
+fra en server action i stedet for å gjette meg til en annen løsning eller
+røre `auth.ts`.
+
+Endringer:
+- Ny fil `src/app/actions/guest-login.ts` (`"use server"`): leser
+  `DEMO_USER_EMAIL` og `DEMO_USER_PASSWORD` fra miljøet, kaller
+  `signIn("credentials", { email, password, redirect: false })` fra
+  `@/auth`. Returnerer `{ success: true }` eller `{ error: "..." }` —
+  ALDRI selve e-posten/passordet, kun en generisk feiltekst, og
+  `console.error` logger bare at innloggingen feilet, ikke noen
+  credentials.
+- Ny fil `src/components/shared/GuestButton.tsx`: klient-knapp som kaller
+  `guestLogin()`, viser "Logger inn..." mens den venter, en feiltekst hvis
+  den feiler, og kaller `router.refresh()` ved suksess — det er dette som
+  gjør at siden viser salgsskjemaet uten full omlasting (se under).
+- `SellGate.tsx` bruker nå `GuestButton` i stedet for den tomme
+  plassholder-knappen fra oppgave 1.
+
+**Hvorfor `router.refresh()` er nok:** `isLoggedIn` kommer fra en
+server-komponent (`page.tsx`) som leser `auth()` på hver request.
+`router.refresh()` ber Next.js kjøre server-komponentene på nytt med
+samme URL, uten en full side-omlasting i nettleseren — `HomeContent` får
+dermed en fersk `isLoggedIn={true}` som prop, og viser `SellFlow` i stedet
+for `SellGate` automatisk.
+
+**Kan ikke testes av meg:** jeg kan ikke kjøre en faktisk innlogging eller
+se resultatet i nettleseren. Dette er uprøvd kode frem til du tester det
+selv.
+
+**Bør sjekkes visuelt/manuelt:** sett `DEMO_USER_EMAIL`/`DEMO_USER_PASSWORD`
+i `.env.local` (se seed-instruksjonen i oppgave 3), kjør seed-scriptet, gå
+til "Selg" uten å være innlogget, trykk "Fortsett som gjest". Forventet:
+knappen viser "Logger inn...", og salgsskjemaet dukker opp uten at siden
+laster på nytt (ingen hvit blink/full reload). Prøv også uten at
+miljøvariablene er satt — skal vise feiltekst, ikke krasje.
