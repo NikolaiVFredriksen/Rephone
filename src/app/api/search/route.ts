@@ -23,6 +23,7 @@ export async function POST(req: Request) {
   const parseResponse = await anthropic.messages.create({
     model: "claude-sonnet-4-6",
     max_tokens: 300,
+    temperature: 0,
     system:
       'Du tolker norske fritekst-søk etter brukte telefoner til JSON. Svar KUN med JSON, ingen annen tekst. Felt: budget (maks pris i kr, tall eller null), brand ("Apple", "Samsung", "Google", "Xiaomi", eller null), model (modellnavn skrevet slik det står i annonser, eller null), minBatteryHealth (minimum batterihelse i prosent hvis nevnt, f.eks "over 80%" gir 80, ellers null), minStorage (minimum lagring i GB hvis nevnt, f.eks "minst 256GB" gir 256 og "1 TB" gir 1024, ellers null), priorities (liste med andre stikkord som ikke fanges av feltene over). Regler for model: Apple skrives med "iPhone" foran, f.eks "iPhone 13", "iPhone 13 Pro", "iPhone 13 Pro Max". Samsung skrives f.eks "Galaxy S24". Google skrives f.eks "Pixel 8". Xiaomi skrives f.eks "13" eller "Redmi Note 12". Skriv kun det brukeren faktisk nevner: "13" gir "iPhone 13", "13 pro" gir "iPhone 13 Pro", "13 pro max" gir "iPhone 13 Pro Max". Et tall alene uten merke tolkes som iPhone. Pro eller Pro Max sammen med et tall tolkes som iPhone. Hvis modellen avslører merket (iPhone gir Apple, Galaxy gir Samsung, Pixel gir Google), sett brand også. Ikke gjett en modell som ikke er nevnt. "godt batteri" gir minBatteryHealth 80.',
     messages: [
