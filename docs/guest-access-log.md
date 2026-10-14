@@ -142,3 +142,50 @@ gjesteinnlogging skal fungere (Production/Preview/Development etter
 behov). Kjør deretter seed-scriptet mot samme database (f.eks. via
 `vercel env pull` lokalt, eller kjør scriptet fra et miljø som har
 tilgang til produksjons-`DATABASE_URL`).
+
+## Slik henger innlogging og gjest sammen
+
+**Hver fil, og hvorfor den finnes:**
+
+- **`src/app/page.tsx`** — eneste sted som vet om brukeren er innlogget
+  FØR noe rendres. Kaller `auth()` (server-side) og sender resultatet ned
+  som en enkel boolsk prop, `isLoggedIn`, til `HomeContent`.
+- **`src/components/HomeContent.tsx`** — bestemmer, basert på `isLoggedIn`
+  og valgt modus ("kjøp"/"selg"), om `SellFlow` eller `SellGate` vises.
+  Kjenner ingenting om HVORFOR brukeren ikke er innlogget, bare OM.
+- **`src/components/sell/SellGate.tsx`** — selve portkortet. Ren
+  presentasjon (ingen state), tre veier videre: to vanlige lenker (logg
+  inn / registrer) og `GuestButton` for gjesteveien.
+- **`src/components/shared/GuestButton.tsx`** — klient-knapp som kaller
+  server action-en og oppdaterer siden (`router.refresh()`) ved suksess,
+  uten at Next.js må gjøre en full side-omlasting.
+- **`src/app/actions/guest-login.ts`** — selve innloggingskallet, kjørt
+  på serveren. Eneste sted i hele denne oppgaven som faktisk kaller
+  `signIn()` fra `@/auth` — leser demo-credentials fra miljøet, logger
+  aldri selve verdiene, returnerer bare suksess/feil.
+- **`prisma/seed-demo-user.ts`** — frittstående skript (kjøres manuelt, er
+  ikke del av selve appen) som sørger for at brukeren
+  `guest-login.ts` logger inn som faktisk finnes i databasen, med et
+  passord som stemmer med miljøvariabelen.
+- **`src/components/shared/Header.tsx`** (endret med tillatelse) — viser
+  "Du er logget inn som gjest" når den innloggede brukeren er
+  demo-kontoen, slik at det alltid er synlig at man deler konto med andre.
+
+**Fra klikk til innlogget gjest, i punkter:**
+
+1. Brukeren er ikke innlogget, trykker "Selg". `HomeContent` viser
+   `SellGate` i stedet for `SellFlow` (avgjort av `isLoggedIn`-propen fra
+   `page.tsx`).
+2. Brukeren trykker "Fortsett som gjest". `GuestButton` kaller server
+   action-en `guestLogin()`.
+3. `guestLogin()` leser `DEMO_USER_EMAIL`/`DEMO_USER_PASSWORD` fra miljøet
+   og kaller `signIn("credentials", { email, password, redirect: false })`
+   fra `@/auth` — samme innloggingsvei som en vanlig bruker, bare med
+   fastsatte credentials i stedet for et skjema.
+4. Lykkes det, kaller `GuestButton` `router.refresh()`. Next.js kjører
+   `page.tsx` på nytt, `auth()` ser den nye sesjonen, og `isLoggedIn={true}`
+   sendes ned igjen — `HomeContent` viser nå `SellFlow` i stedet for
+   `SellGate`, uten at siden har lastet på nytt i nettleseren.
+5. I `Header.tsx` sammenlignes den innloggede e-posten med
+   `DEMO_USER_EMAIL`. Matcher den, vises "Du er logget inn som gjest" ved
+   siden av "Logg ut" — hele tiden, på alle sider, ikke bare på forsiden.
