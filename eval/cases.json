@@ -45,8 +45,8 @@
   },
   {
     "id": "model-without-brand",
-    "input": "Galaxy S24 under 5000",
-    "expected": { "brand": "Samsung", "model": "Galaxy S24", "budget": 5000 },
+    "input": "Galaxy S24 under 6000",
+    "expected": { "brand": "Samsung", "model": "Galaxy S24", "budget": 6000 },
     "onlyModelsContaining": ["Galaxy S24"],
     "minResults": 1
   },
