@@ -1,6 +1,26 @@
 import { readFileSync } from "node:fs";
+import "dotenv/config";
+import { PrismaClient } from "../src/generated/prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter });
 
 const BASE = process.env.EVAL_BASE_URL ?? "http://localhost:3000";
+
+function parseArgs() {
+  const args = process.argv.slice(2);
+  let file = "eval/cases.json";
+  let runs = 1;
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--runs") runs = Number(args[++i]) || 1;
+    else if (args[i] === "--file") file = args[++i];
+    else if (!args[i].startsWith("--")) file = args[i];
+  }
+  return { file, runs };
+}
+
+const { file, runs } = parseArgs();
 
 type Case = {
   id: string;
@@ -15,15 +35,21 @@ type Listing = {
   brand: string;
   model: string;
   price: number;
+  condition: string;
   batteryHealth: number | null;
   storage: number | null;
 };
 
-const cases: Case[] = JSON.parse(readFileSync("eval/cases.json", "utf-8"));
+const cases: Case[] = JSON.parse(readFileSync(file, "utf-8"));
 
 function same(got: unknown, want: unknown) {
   if (typeof got === "string" && typeof want === "string") {
     return got.toLowerCase() === want.toLowerCase();
+  }
+  if (Array.isArray(got) && Array.isArray(want)) {
+    const a = [...got].map((x) => String(x).toLowerCase()).sort();
+    const b = [...want].map((x) => String(x).toLowerCase()).sort();
+    return a.length === b.length && a.every((v, i) => v === b[i]);
   }
   return got === want;
 }
@@ -32,6 +58,9 @@ function filterViolations(l: Listing, f: Record<string, unknown>): string[] {
   const v: string[] = [];
   if (f.budget && l.price > Number(f.budget)) {
     v.push(`pris ${l.price} over budsjett ${f.budget}`);
+  }
+  if (f.minPrice && l.price < Number(f.minPrice)) {
+    v.push(`pris ${l.price} under minPrice ${f.minPrice}`);
   }
   if (f.brand && l.brand.toLowerCase() !== String(f.brand).toLowerCase()) {
     v.push(`merke ${l.brand}, ønsket ${f.brand}`);
@@ -51,76 +80,167 @@ function filterViolations(l: Listing, f: Record<string, unknown>): string[] {
   if (f.minStorage && (l.storage ?? 0) < Number(f.minStorage)) {
     v.push(`lagring ${l.storage}, ønsket minst ${f.minStorage}`);
   }
+  if (
+    Array.isArray(f.conditions) &&
+    f.conditions.length > 0 &&
+    !f.conditions.some(
+      (c) => String(c).toLowerCase() === l.condition.toLowerCase(),
+    )
+  ) {
+    v.push(`tilstand ${l.condition}, ønsket en av ${f.conditions.join(", ")}`);
+  }
   return v;
 }
 
-async function main() {
-  let casesOk = 0;
+// Fasiten for `total` kommer alltid fra databasen og testens EGNE kriterier
+// (c.expected), aldri fra hva AI-en tolket i det aktuelle svaret.
+async function expectedTotal(expected: Record<string, unknown>) {
+  const priceFilter: { lte?: number; gte?: number } = {};
+  if (expected.budget) priceFilter.lte = Number(expected.budget);
+  if (expected.minPrice) priceFilter.gte = Number(expected.minPrice);
 
-  for (const c of cases) {
-    const res = await fetch(`${BASE}/api/search`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: c.input }),
-    });
+  const conditions = Array.isArray(expected.conditions)
+    ? (expected.conditions as string[])
+    : [];
 
-    if (!res.ok) {
-      console.log(`\nFEIL ${c.id}: serveren svarte ${res.status}`);
-      continue;
-    }
-
-    const data = await res.json();
-    const filters = data.filters ?? {};
-    const results: Listing[] = data.results ?? [];
-    const problems: string[] = [];
-
-    for (const [key, want] of Object.entries(c.expected)) {
-      const got = filters[key] ?? null;
-      if (!same(got, want)) {
-        problems.push(`tolkning ${key}: forventet ${want}, fikk ${got}`);
-      }
-    }
-
-    for (const l of results) {
-      for (const v of filterViolations(l, filters)) {
-        problems.push(`resultat ${l.model}: ${v}`);
-      }
-      if (
-        c.onlyModelsContaining &&
-        !c.onlyModelsContaining.some((m) =>
-          l.model.toLowerCase().includes(m.toLowerCase()),
-        )
-      ) {
-        problems.push(
-          `resultat ${l.model}: ikke blant ${c.onlyModelsContaining.join(", ")}`,
-        );
-      }
-      if (
-        c.onlyBrands &&
-        !c.onlyBrands.some((b) => b.toLowerCase() === l.brand.toLowerCase())
-      ) {
-        problems.push(
-          `resultat ${l.brand} ${l.model}: ikke blant merker ${c.onlyBrands.join(", ")}`,
-        );
-      }
-    }
-
-    if (c.minResults !== undefined && results.length < c.minResults) {
-      problems.push(
-        `bare ${results.length} treff, forventet minst ${c.minResults}`,
-      );
-    }
-
-    console.log(
-      `\n${problems.length === 0 ? "OK  " : "FEIL"} ${c.id}: ${c.input} (${results.length} treff)`,
-    );
-    problems.forEach((p) => console.log(`     ${p}`));
-    if (problems.length === 0) casesOk++;
-  }
-
-  console.log(`\nSaker riktige: ${casesOk}/${cases.length}`);
+  return prisma.listing.count({
+    where: {
+      status: "AKTIV",
+      ...(Object.keys(priceFilter).length ? { price: priceFilter } : {}),
+      ...(conditions.length ? { condition: { in: conditions as never } } : {}),
+      ...(expected.brand
+        ? { brand: { equals: String(expected.brand), mode: "insensitive" } }
+        : {}),
+      ...(expected.model
+        ? { model: { contains: String(expected.model), mode: "insensitive" } }
+        : {}),
+      ...(expected.minBatteryHealth
+        ? { batteryHealth: { gte: Number(expected.minBatteryHealth) } }
+        : {}),
+      ...(expected.minStorage
+        ? { storage: { gte: Number(expected.minStorage) } }
+        : {}),
+    },
+  });
 }
 
-main().catch((e) => {
-  console.error("Skriptet krasjet. Går dev-serveren?", e.message);
-});
+async function runCase(c: Case) {
+  const res = await fetch(`${BASE}/api/search`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query: c.input }),
+  });
+
+  if (!res.ok) {
+    return { ok: false, problems: [`serveren svarte ${res.status}`], filters: {}, results: [] as Listing[] };
+  }
+
+  const data = await res.json();
+  const filters = data.filters ?? {};
+  const results: Listing[] = data.results ?? [];
+  const problems: string[] = [];
+
+  for (const [key, want] of Object.entries(c.expected)) {
+    const got = filters[key] ?? null;
+    if (!same(got, want)) {
+      problems.push(`tolkning ${key}: forventet ${JSON.stringify(want)}, fikk ${JSON.stringify(got)}`);
+    }
+  }
+
+  for (const l of results) {
+    for (const v of filterViolations(l, filters)) {
+      problems.push(`resultat ${l.model}: ${v}`);
+    }
+    if (
+      c.onlyModelsContaining &&
+      !c.onlyModelsContaining.some((m) =>
+        l.model.toLowerCase().includes(m.toLowerCase()),
+      )
+    ) {
+      problems.push(
+        `resultat ${l.model}: ikke blant ${c.onlyModelsContaining.join(", ")}`,
+      );
+    }
+    if (
+      c.onlyBrands &&
+      !c.onlyBrands.some((b) => b.toLowerCase() === l.brand.toLowerCase())
+    ) {
+      problems.push(
+        `resultat ${l.brand} ${l.model}: ikke blant merker ${c.onlyBrands.join(", ")}`,
+      );
+    }
+  }
+
+  if (c.minResults !== undefined && results.length < c.minResults) {
+    problems.push(
+      `bare ${results.length} treff, forventet minst ${c.minResults}`,
+    );
+  }
+
+  if (typeof data.total === "number") {
+    const want = await expectedTotal(c.expected);
+    if (data.total !== want) {
+      problems.push(
+        `total: API svarte ${data.total}, databasen har ${want} treff for kriteriene i denne saken`,
+      );
+    }
+  }
+
+  if (filters.sortBy === "price_asc" || filters.sortBy === "price_desc") {
+    const prices = results.map((l) => l.price);
+    const sorted = [...prices].sort((a, b) =>
+      filters.sortBy === "price_asc" ? a - b : b - a,
+    );
+    if (JSON.stringify(prices) !== JSON.stringify(sorted)) {
+      problems.push(
+        `resultater er ikke sortert etter ${filters.sortBy}: ${prices.join(", ")}`,
+      );
+    }
+  }
+
+  return { ok: problems.length === 0, problems, filters, results };
+}
+
+async function main() {
+  console.log(`Fil: ${file}, kjøringer: ${runs}`);
+  const filtersPerCase: Record<string, string[]> = {};
+  let lastRunOk = 0;
+
+  for (let r = 0; r < runs; r++) {
+    let casesOk = 0;
+    if (runs > 1) console.log(`\n--- Kjøring ${r + 1}/${runs} ---`);
+
+    for (const c of cases) {
+      const { ok, problems, filters, results } = await runCase(c);
+      filtersPerCase[c.id] = filtersPerCase[c.id] ?? [];
+      filtersPerCase[c.id].push(JSON.stringify(filters));
+
+      console.log(
+        `\n${ok ? "OK  " : "FEIL"} ${c.id}: ${c.input} (${results.length} treff)`,
+      );
+      problems.forEach((p) => console.log(`     ${p}`));
+      if (ok) casesOk++;
+    }
+
+    console.log(`\nSaker riktige: ${casesOk}/${cases.length}`);
+    lastRunOk = casesOk;
+  }
+
+  if (runs > 1) {
+    const unstable = Object.entries(filtersPerCase).filter(
+      ([, arr]) => new Set(arr).size > 1,
+    );
+    console.log(
+      `\nStabilitet: ${unstable.length}/${cases.length} saker ga ulikt svar mellom de ${runs} kjøringene.`,
+    );
+    unstable.forEach(([id]) => console.log(`     ustabil: ${id}`));
+  }
+
+  console.log(`\nSiste kjøring - saker riktige: ${lastRunOk}/${cases.length}`);
+}
+
+main()
+  .catch((e) => {
+    console.error("Skriptet krasjet. Går dev-serveren?", e.message);
+  })
+  .finally(() => prisma.$disconnect());

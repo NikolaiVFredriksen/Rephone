@@ -1,0 +1,78 @@
+[
+  {
+    "id": "holdout-model-alone",
+    "input": "iPhone 14 Pro",
+    "expected": { "brand": "Apple", "model": "iPhone 14 Pro" },
+    "onlyModelsContaining": ["iPhone 14 Pro"],
+    "minResults": 1
+  },
+  {
+    "id": "holdout-brand-alone",
+    "input": "Samsung",
+    "expected": { "brand": "Samsung" },
+    "onlyBrands": ["Samsung"],
+    "minResults": 1
+  },
+  {
+    "id": "holdout-model-with-price",
+    "input": "Galaxy S24 under 6000",
+    "expected": { "brand": "Samsung", "model": "Galaxy S24", "budget": 6000 },
+    "onlyModelsContaining": ["Galaxy S24"],
+    "minResults": 1
+  },
+  {
+    "id": "holdout-cheapest",
+    "input": "billigste iPhone",
+    "expected": { "brand": "Apple", "sortBy": "price_asc" },
+    "onlyBrands": ["Apple"],
+    "minResults": 1
+  },
+  {
+    "id": "holdout-like-new",
+    "input": "iPhone 16 Pro som ny",
+    "expected": {
+      "brand": "Apple",
+      "model": "iPhone 16 Pro",
+      "conditions": ["NY", "PENT_BRUKT"]
+    },
+    "onlyModelsContaining": ["iPhone 16 Pro"],
+    "minResults": 1
+  },
+  {
+    "id": "holdout-color",
+    "input": "svart iPhone 13 pro",
+    "expected": {
+      "brand": "Apple",
+      "model": "iPhone 13 Pro",
+      "unsupported": ["svart"]
+    },
+    "onlyModelsContaining": ["iPhone 13 Pro"],
+    "minResults": 1
+  },
+  {
+    "id": "holdout-short-form-nospace",
+    "input": "pixel7",
+    "expected": { "brand": "Google", "model": "Pixel 7" },
+    "onlyModelsContaining": ["Pixel 7"],
+    "minResults": 1
+  },
+  {
+    "id": "holdout-typo-no-match",
+    "input": "13promax",
+    "expected": { "brand": "Apple", "model": "iPhone 13 Pro Max" }
+  },
+  {
+    "id": "holdout-short-form",
+    "input": "s24",
+    "expected": { "brand": "Samsung", "model": "Galaxy S24" },
+    "onlyModelsContaining": ["Galaxy S24"],
+    "minResults": 1
+  },
+  {
+    "id": "holdout-cheap-brand",
+    "input": "billig xiaomi",
+    "expected": { "brand": "Xiaomi", "sortBy": "price_asc" },
+    "onlyBrands": ["Xiaomi"],
+    "minResults": 1
+  }
+]

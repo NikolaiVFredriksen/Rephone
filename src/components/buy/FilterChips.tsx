@@ -1,10 +1,26 @@
 type Filters = {
   budget?: number;
+  minPrice?: number;
   brand?: string;
   model?: string;
   minBatteryHealth?: number;
   minStorage?: number;
+  conditions?: string[];
+  sortBy?: string;
   priorities?: string[];
+  unsupported?: string[];
+};
+
+const CONDITION_LABELS: Record<string, string> = {
+  NY: "Ny",
+  PENT_BRUKT: "Pent brukt",
+  BRUKT: "Brukt",
+  GODT_BRUKT: "Godt brukt",
+};
+
+const SORT_LABELS: Record<string, string> = {
+  price_asc: "Billigst først",
+  price_desc: "Dyrest først",
 };
 
 type FilterChipsProps = {
@@ -28,6 +44,14 @@ export default function FilterChips({ filters }: FilterChipsProps) {
           Budsjett: {filters.budget}kr
         </span>
       )}
+      {filters.minPrice && (
+        <span
+          className="text-xs px-3 py-1 rounded-full"
+          style={{ background: "#F3DCD1", color: "#8A4A2E" }}
+        >
+          Fra {filters.minPrice}kr
+        </span>
+      )}
       {filters.brand && (
         <span
           className="text-xs px-3 py-1 rounded-full"
@@ -44,6 +68,15 @@ export default function FilterChips({ filters }: FilterChipsProps) {
           {filters.model}
         </span>
       )}
+      {filters.conditions?.map((c) => (
+        <span
+          key={c}
+          className="text-xs px-3 py-1 rounded-full"
+          style={{ background: "#F3DCD1", color: "#8A4A2E" }}
+        >
+          {CONDITION_LABELS[c] ?? c}
+        </span>
+      ))}
       {filters.minBatteryHealth && (
         <span
           className="text-xs px-3 py-1 rounded-full"
@@ -60,6 +93,14 @@ export default function FilterChips({ filters }: FilterChipsProps) {
           Min. {storageLabel(filters.minStorage)}
         </span>
       )}
+      {filters.sortBy && SORT_LABELS[filters.sortBy] && (
+        <span
+          className="text-xs px-3 py-1 rounded-full"
+          style={{ background: "#F3DCD1", color: "#8A4A2E" }}
+        >
+          {SORT_LABELS[filters.sortBy]}
+        </span>
+      )}
       {filters.priorities?.map((p) => (
         <span
           key={p}
@@ -67,6 +108,15 @@ export default function FilterChips({ filters }: FilterChipsProps) {
           style={{ background: "#F3DCD1", color: "#8A4A2E" }}
         >
           {p}
+        </span>
+      ))}
+      {filters.unsupported?.map((u) => (
+        <span
+          key={u}
+          className="text-xs px-3 py-1 rounded-full opacity-60"
+          style={{ background: "#EDE7DD", color: "#8A7A68" }}
+        >
+          {u}: ikke støttet enda
         </span>
       ))}
     </div>

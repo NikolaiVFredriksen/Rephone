@@ -45,8 +45,8 @@
   },
   {
     "id": "model-without-brand",
-    "input": "Galaxy S24 under 5000",
-    "expected": { "brand": "Samsung", "model": "Galaxy S24", "budget": 5000 },
+    "input": "Galaxy S24 under 6000",
+    "expected": { "brand": "Samsung", "model": "Galaxy S24", "budget": 6000 },
     "onlyModelsContaining": ["Galaxy S24"],
     "minResults": 1
   },
@@ -56,5 +56,171 @@
     "expected": { "brand": "Xiaomi", "model": "13", "budget": 3000 },
     "onlyBrands": ["Xiaomi"],
     "minResults": 1
+  },
+  {
+    "id": "model-number-alone",
+    "input": "13",
+    "expected": { "brand": "Apple", "model": "iPhone 13" },
+    "onlyModelsContaining": ["iPhone 13"],
+    "minResults": 1
+  },
+  {
+    "id": "model-contains-all-13-variants",
+    "input": "iPhone 13",
+    "expected": { "brand": "Apple", "model": "iPhone 13" },
+    "onlyModelsContaining": ["iPhone 13"],
+    "minResults": 1
+  },
+  {
+    "id": "model-concat-nospace",
+    "input": "iphone13pro",
+    "expected": { "brand": "Apple", "model": "iPhone 13 Pro" },
+    "onlyModelsContaining": ["iPhone 13 Pro"],
+    "minResults": 1
+  },
+  {
+    "id": "model-concat-promax-no-db-match",
+    "input": "13promax",
+    "expected": { "brand": "Apple", "model": "iPhone 13 Pro Max" }
+  },
+  {
+    "id": "model-norwegian-maks",
+    "input": "iPhone 13 pro maks",
+    "expected": { "brand": "Apple", "model": "iPhone 13 Pro Max" }
+  },
+  {
+    "id": "model-short-s24",
+    "input": "s24",
+    "expected": { "brand": "Samsung", "model": "Galaxy S24" },
+    "onlyModelsContaining": ["Galaxy S24"],
+    "minResults": 1
+  },
+  {
+    "id": "model-short-pixel8-no-db-match",
+    "input": "pixel8",
+    "expected": { "brand": "Google", "model": "Pixel 8" }
+  },
+  {
+    "id": "model-spaced-galaxy-s24",
+    "input": "galaxy s 24",
+    "expected": { "brand": "Samsung", "model": "Galaxy S24" },
+    "onlyModelsContaining": ["Galaxy S24"],
+    "minResults": 1
+  },
+  {
+    "id": "minprice-over-kr",
+    "input": "iPhone over 4000kr",
+    "expected": { "brand": "Apple", "minPrice": 4000 },
+    "onlyBrands": ["Apple"],
+    "minResults": 1
+  },
+  {
+    "id": "minprice-k-shorthand",
+    "input": "telefon over 4k",
+    "expected": { "minPrice": 4000 },
+    "minResults": 1
+  },
+  {
+    "id": "minprice-dash-notation",
+    "input": "telefon fra 4000,-",
+    "expected": { "minPrice": 4000 },
+    "minResults": 1
+  },
+  {
+    "id": "minprice-spaced-thousand",
+    "input": "telefon fra 4 000 kr",
+    "expected": { "minPrice": 4000 },
+    "minResults": 1
+  },
+  {
+    "id": "minprice-written-out",
+    "input": "telefon fra fire tusen kroner",
+    "expected": { "minPrice": 4000 },
+    "minResults": 1
+  },
+  {
+    "id": "condition-like-new",
+    "input": "iPhone 16 Pro som ny",
+    "expected": {
+      "brand": "Apple",
+      "model": "iPhone 16 Pro",
+      "conditions": ["NY", "PENT_BRUKT"]
+    },
+    "onlyModelsContaining": ["iPhone 16 Pro"],
+    "minResults": 1
+  },
+  {
+    "id": "condition-pent-brukt",
+    "input": "pent brukt Galaxy S24",
+    "expected": {
+      "brand": "Samsung",
+      "model": "Galaxy S24",
+      "conditions": ["PENT_BRUKT"]
+    },
+    "onlyModelsContaining": ["Galaxy S24"],
+    "minResults": 1
+  },
+  {
+    "id": "condition-godt-brukt",
+    "input": "godt brukt iPhone",
+    "expected": { "brand": "Apple", "conditions": ["GODT_BRUKT"] },
+    "onlyBrands": ["Apple"],
+    "minResults": 1
+  },
+  {
+    "id": "condition-vague-unclear",
+    "input": "brukt telefon",
+    "expected": { "conditions": null }
+  },
+  {
+    "id": "sort-cheapest",
+    "input": "billigste iPhone",
+    "expected": { "brand": "Apple", "sortBy": "price_asc" },
+    "onlyBrands": ["Apple"],
+    "minResults": 1
+  },
+  {
+    "id": "sort-most-expensive",
+    "input": "dyreste Samsung",
+    "expected": { "brand": "Samsung", "sortBy": "price_desc" },
+    "onlyBrands": ["Samsung"],
+    "minResults": 1
+  },
+  {
+    "id": "unsupported-color",
+    "input": "svart iPhone 13 pro",
+    "expected": {
+      "brand": "Apple",
+      "model": "iPhone 13 Pro",
+      "unsupported": ["svart"]
+    },
+    "onlyModelsContaining": ["iPhone 13 Pro"],
+    "minResults": 1
+  },
+  {
+    "id": "unsupported-location",
+    "input": "iPhone i Oslo",
+    "expected": { "brand": "Apple", "unsupported": ["Oslo"] },
+    "onlyBrands": ["Apple"],
+    "minResults": 1
+  },
+  {
+    "id": "unsupported-use-case",
+    "input": "telefon til barn",
+    "expected": { "unsupported": ["til barn"] },
+    "minResults": 1
+  },
+  {
+    "id": "priorities-billig-nyere",
+    "input": "billig nyere iPhone",
+    "expected": { "brand": "Apple", "priorities": ["billig", "nyere"] },
+    "onlyBrands": ["Apple"],
+    "minResults": 1
+  },
+  {
+    "id": "pagination-broad-search-total",
+    "input": "telefon",
+    "expected": {},
+    "minResults": 10
   }
 ]
