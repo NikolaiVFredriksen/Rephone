@@ -171,7 +171,23 @@ grensen.
 
 **Eval etter punkt 6: 31/32** (opp fra 27/28).
 
-## Punkt 7–8
+## Punkt 7 — Tomt resultat
+
+**Hvorfor:** Med flere filtre (pris, tilstand, batteri, lagring) blir det
+lettere å kombinere krav som ikke finnes samtidig i databasen. Et blankt
+resultatfelt uten forklaring ser ut som en feil, ikke et ærlig "ingen treff".
+
+La til en `searched`-state i `BuyFlow.tsx` som skiller "har ikke søkt enda"
+fra "søkte, fikk 0 treff" (uten den ville meldingen også vist seg før
+brukeren har gjort noe). Viser "Ingen treff. Prøv å fjerne et krav." sammen
+med chipsene som allerede viser hva som ble tolket, slik at brukeren ser
+*hvorfor* det ikke ble treff og kan justere søket sitt bevisst.
+
+Ren frontend-tekst/state-endring — ingen ny evalsak, siden `cases.json` tester
+`/api/search`-tolkningen, ikke hva BuyFlow viser i nettleseren. Ingen
+evalkjøring brukt på dette punktet.
+
+## Punkt 8
 
 (fylles ut fortløpende)
 

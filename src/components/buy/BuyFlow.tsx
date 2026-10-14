@@ -25,6 +25,7 @@ export default function BuyFlow() {
   const [error, setError] = useState("");
   const [filters, setFilters] = useState<Filters | null>(null);
   const [results, setResults] = useState<Listing[]>([]);
+  const [searched, setSearched] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -33,6 +34,7 @@ export default function BuyFlow() {
     setError("");
     setResults([]);
     setFilters(null);
+    setSearched(false);
     setLoading(true);
 
     try {
@@ -44,6 +46,7 @@ export default function BuyFlow() {
       const data = await res.json();
       setFilters(data.filters);
       setResults(data.results);
+      setSearched(true);
     } catch {
       setError("Noe gikk galt, prøv igjen");
     } finally {
@@ -54,6 +57,7 @@ export default function BuyFlow() {
   async function handleShowRecommendations() {
     setError("");
     setFilters(null);
+    setSearched(false);
     setLoading(true);
     try {
       const res = await fetch("/api/listings");
@@ -112,6 +116,11 @@ export default function BuyFlow() {
         {error && <p className="text-center text-sm text-red-600">{error}</p>}
 
         <FilterChips filters={filters} />
+        {!loading && searched && results.length === 0 && (
+          <p className="text-center text-sm mb-6" style={{ color: "#8A7A68" }}>
+            Ingen treff. Prøv å fjerne et krav.
+          </p>
+        )}
         {loading ? <ResultsGridSkeleton /> : <ResultsGrid results={results} />}
       </div>
     </>
