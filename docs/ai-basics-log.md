@@ -61,6 +61,45 @@ tydelig forbedring i stabilitet, sannsynligvis fordi utvalget er for lite til å
 skille støy fra reell variasjon. `temperature: 0` er likevel riktig valg
 prinsipielt (fjerner en unødvendig frihetsgrad), og totaltallet gikk ikke ned.
 
+## Punkt 2 — Modellnavn
+
+**Hvorfor:** Folk skriver modellnavn tilfeldig (store/små bokstaver,
+sammenskrevet, norske stavevarianter). Databasen har ett eksakt format per
+modell, og prompten må normalisere til akkurat det formatet — ellers bommer
+`contains`-søket selv når tolkningen "nesten" er riktig.
+
+Laget `eval/list-models.ts` (kun lesing) for å hente de faktiske
+`brand`/`model`-verdiene fra databasen som fasit. Faktisk innhold akkurat nå:
+
+```
+Apple | iPhone 11 Pro Max, iPhone 12 Pro, iPhone 13 Pro, iPhone 14 Pro (x2), iPhone 15 Pro, iPhone 16 Pro
+Google | Pixel 7
+Samsung | Galaxy S22, Galaxy S24
+Xiaomi | Xiaomi 13
+```
+
+Lagt til regler i prompten: ignorer mellomrom/store-små bokstaver/sammenskriving
+("iphone13pro" → "iPhone 13 Pro"), norsk "maks" = "Max" ("iPhone 13 pro maks" →
+"iPhone 13 Pro Max"), Samsung kort form "s" + tall uten mellomrom i svaret
+("s24"/"galaxy s 24" → "Galaxy S24"), Google kort form uten mellomrom i søket
+men mellomrom i svaret ("pixel8" → "Pixel 8"), og presisert at "Xiaomi 13" gir
+model "13" (ikke "Xiaomi 13"), siden Xiaomi-modeller ikke har eget prefiks.
+
+Lagt til 8 evalsaker (bruker nøyaktig eksemplene fra oppgaven: "iphone13pro",
+"13promax", "iPhone 13 pro maks", "s24", "pixel8", "galaxy s 24", pluss "13"
+alene og "iPhone 13" som skal treffe alle 13-variantene via contains). Tre av
+disse ("13promax", "pixel8"-varianten og "maks"-varianten) har ingen reell
+match i databasen akkurat nå (ingen "iPhone 13 Pro Max" eller "Pixel 8"
+finnes) — det sjekkes da kun at AI-tolkningen (brand/model) er riktig, ikke
+antall treff; 0 treff er korrekt og ærlig her.
+
+**Eval etter punkt 2: 16/17** (opp fra baseline 8/9). Eneste feil er den
+forhåndseksisterende `model-without-brand` (se baseline-notatet).
+
+## Punkt 3–8
+
+(fylles ut fortløpende)
+
 ## Slik henger søket sammen
 
 (fylles ut fortløpende per punkt, og oppsummeres til slutt)

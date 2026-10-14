@@ -56,5 +56,55 @@
     "expected": { "brand": "Xiaomi", "model": "13", "budget": 3000 },
     "onlyBrands": ["Xiaomi"],
     "minResults": 1
+  },
+  {
+    "id": "model-number-alone",
+    "input": "13",
+    "expected": { "brand": "Apple", "model": "iPhone 13" },
+    "onlyModelsContaining": ["iPhone 13"],
+    "minResults": 1
+  },
+  {
+    "id": "model-contains-all-13-variants",
+    "input": "iPhone 13",
+    "expected": { "brand": "Apple", "model": "iPhone 13" },
+    "onlyModelsContaining": ["iPhone 13"],
+    "minResults": 1
+  },
+  {
+    "id": "model-concat-nospace",
+    "input": "iphone13pro",
+    "expected": { "brand": "Apple", "model": "iPhone 13 Pro" },
+    "onlyModelsContaining": ["iPhone 13 Pro"],
+    "minResults": 1
+  },
+  {
+    "id": "model-concat-promax-no-db-match",
+    "input": "13promax",
+    "expected": { "brand": "Apple", "model": "iPhone 13 Pro Max" }
+  },
+  {
+    "id": "model-norwegian-maks",
+    "input": "iPhone 13 pro maks",
+    "expected": { "brand": "Apple", "model": "iPhone 13 Pro Max" }
+  },
+  {
+    "id": "model-short-s24",
+    "input": "s24",
+    "expected": { "brand": "Samsung", "model": "Galaxy S24" },
+    "onlyModelsContaining": ["Galaxy S24"],
+    "minResults": 1
+  },
+  {
+    "id": "model-short-pixel8-no-db-match",
+    "input": "pixel8",
+    "expected": { "brand": "Google", "model": "Pixel 8" }
+  },
+  {
+    "id": "model-spaced-galaxy-s24",
+    "input": "galaxy s 24",
+    "expected": { "brand": "Samsung", "model": "Galaxy S24" },
+    "onlyModelsContaining": ["Galaxy S24"],
+    "minResults": 1
   }
 ]
