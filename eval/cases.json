@@ -185,5 +185,36 @@
     "expected": { "brand": "Samsung", "sortBy": "price_desc" },
     "onlyBrands": ["Samsung"],
     "minResults": 1
+  },
+  {
+    "id": "unsupported-color",
+    "input": "svart iPhone 13 pro",
+    "expected": {
+      "brand": "Apple",
+      "model": "iPhone 13 Pro",
+      "unsupported": ["svart"]
+    },
+    "onlyModelsContaining": ["iPhone 13 Pro"],
+    "minResults": 1
+  },
+  {
+    "id": "unsupported-location",
+    "input": "iPhone i Oslo",
+    "expected": { "brand": "Apple", "unsupported": ["Oslo"] },
+    "onlyBrands": ["Apple"],
+    "minResults": 1
+  },
+  {
+    "id": "unsupported-use-case",
+    "input": "telefon til barn",
+    "expected": { "unsupported": ["til barn"] },
+    "minResults": 1
+  },
+  {
+    "id": "priorities-billig-nyere",
+    "input": "billig nyere iPhone",
+    "expected": { "brand": "Apple", "priorities": ["billig", "nyere"] },
+    "onlyBrands": ["Apple"],
+    "minResults": 1
   }
 ]

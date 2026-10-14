@@ -16,6 +16,7 @@ type Filters = {
   conditions?: string[];
   sortBy?: string;
   priorities?: string[];
+  unsupported?: string[];
 };
 
 export default function BuyFlow() {

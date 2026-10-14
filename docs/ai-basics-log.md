@@ -154,7 +154,24 @@ sorteringen avviker fra standard.
 
 **Eval etter punkt 5: 27/28** (opp fra 25/26).
 
-## Punkt 6–8
+## Punkt 6 — Ikke støttet (unsupported)
+
+**Hvorfor:** Før ble farge, sted og bruksområde dumpet i `priorities` og vist
+som en helt vanlig chip — det ser ut som søket "forstår" dette, men det
+filtrerer aldri på det. Det er verre enn å si det rett ut, fordi brukeren tror
+treffene er påvirket av noe de egentlig ikke er.
+
+La til `unsupported` som eget felt i prompten (farge, sted, bruksområde), med
+eksplisitt instruks om at disse ALDRI skal legges i `priorities`. Presiserte
+samtidig at "billig" og "nyere" alltid skal med i `priorities` (de filtrerer
+fortsatt ikke på noe, men er ikke "ikke støttet" — de vises som vanlig chip).
+`unsupported` brukes aldri i `where`-klausulen. Viser dempet chip
+("<ord>: ikke støttet enda") i `FilterChips.tsx` for å være ærlig om
+grensen.
+
+**Eval etter punkt 6: 31/32** (opp fra 27/28).
+
+## Punkt 7–8
 
 (fylles ut fortløpende)
 

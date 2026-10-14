@@ -8,6 +8,7 @@ type Filters = {
   conditions?: string[];
   sortBy?: string;
   priorities?: string[];
+  unsupported?: string[];
 };
 
 const CONDITION_LABELS: Record<string, string> = {
@@ -107,6 +108,15 @@ export default function FilterChips({ filters }: FilterChipsProps) {
           style={{ background: "#F3DCD1", color: "#8A4A2E" }}
         >
           {p}
+        </span>
+      ))}
+      {filters.unsupported?.map((u) => (
+        <span
+          key={u}
+          className="text-xs px-3 py-1 rounded-full opacity-60"
+          style={{ background: "#EDE7DD", color: "#8A7A68" }}
+        >
+          {u}: ikke støttet enda
         </span>
       ))}
     </div>
