@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Spinner from "../shared/Spinner";
 import Badge from "../shared/Badge";
 import type { Draft } from "./types";
@@ -19,6 +19,16 @@ const CONDITIONS = [
 ];
 
 const STORAGE_OPTIONS = [64, 128, 256, 512, 1024];
+
+const DEBOUNCE_MS = 600;
+
+type PriceMode = "full" | "base";
+
+type Baseline = {
+  price: number;
+  storage: number | null;
+  batteryHealth: number | null;
+};
 
 function storageLabel(gb: number) {
   return gb === 1024 ? "1TB" : `${gb}GB`;
@@ -49,51 +59,168 @@ function FieldLabel({ text, filled }: { text: string; filled: boolean }) {
   );
 }
 
+function isValidBatteryHealth(value: number | null) {
+  return (
+    value === null || (!Number.isNaN(value) && value >= 0 && value <= 100)
+  );
+}
+
 export default function EditDraftStep({
   draft,
   onDraftChange,
   onContinue,
 }: EditDraftStepProps) {
   const [adjusting, setAdjusting] = useState(false);
+  const [priceSource, setPriceSource] = useState<"system" | "user">("system");
+  const [pendingPrice, setPendingPrice] = useState<{
+    price: number;
+    reasoning: string;
+  } | null>(null);
+  const [priceError, setPriceError] = useState("");
 
-  async function refreshPrice(updated: Draft) {
+  const draftRef = useRef(draft);
+  useEffect(() => {
+    draftRef.current = draft;
+  }, [draft]);
+
+  const baselineRef = useRef<Baseline>({
+    price: draft.price,
+    storage: draft.storage,
+    batteryHealth: draft.batteryHealth,
+  });
+  const abortRef = useRef<AbortController | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const priceSourceRef = useRef(priceSource);
+  priceSourceRef.current = priceSource;
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      abortRef.current?.abort();
+    };
+  }, []);
+
+  async function refreshPrice(updated: Draft, mode: PriceMode) {
     if (!updated.brand || !updated.model || !updated.condition) return;
+    if (!isValidBatteryHealth(updated.batteryHealth)) return;
+
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
 
     setAdjusting(true);
+    setPriceError("");
+
+    const baseline = baselineRef.current;
+    const body: Record<string, unknown> = {
+      brand: updated.brand,
+      model: updated.model,
+      condition: updated.condition,
+      storage: updated.storage,
+      batteryHealth: updated.batteryHealth,
+    };
+    if (
+      mode === "base" &&
+      typeof baseline.price === "number" &&
+      !Number.isNaN(baseline.price)
+    ) {
+      body.basePrice = baseline.price;
+      body.baseStorage = baseline.storage;
+      body.baseBatteryHealth = baseline.batteryHealth;
+    }
+
     try {
       const res = await fetch("/api/adjust-price", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          brand: updated.brand,
-          model: updated.model,
-          condition: updated.condition,
-          storage: updated.storage,
-          batteryHealth: updated.batteryHealth,
-        }),
+        body: JSON.stringify(body),
+        signal: controller.signal,
       });
+
+      if (res.status === 404) {
+        setPriceError("Fant ikke grunnlag for ny pris, juster selv");
+        return;
+      }
+      if (!res.ok) {
+        console.error("Kunne ikke oppdatere prisforslag:", res.status);
+        return;
+      }
+
       const data = await res.json();
-      if (data.price) {
+      if (typeof data.price !== "number" || Number.isNaN(data.price)) return;
+
+      baselineRef.current = {
+        price: data.price,
+        storage: updated.storage,
+        batteryHealth: updated.batteryHealth,
+      };
+
+      if (priceSourceRef.current === "user") {
+        setPendingPrice({ price: data.price, reasoning: data.reasoning ?? "" });
+      } else {
         onDraftChange({
-          ...updated,
+          ...draftRef.current,
           price: data.price,
-          reasoning: data.reasoning ?? updated.reasoning,
+          reasoning: data.reasoning ?? draftRef.current.reasoning,
         });
       }
-    } catch {
-      // stille feil, beholder eksisterende pris
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") return;
+      console.error("Kunne ikke oppdatere prisforslag:", err);
     } finally {
-      setAdjusting(false);
+      if (abortRef.current === controller) setAdjusting(false);
     }
   }
 
-  function handleFieldChange(
+  function applyFieldUpdate(field: keyof Draft, value: string | number | null) {
+    const updated = { ...draftRef.current, [field]: value };
+    onDraftChange(updated);
+    return updated;
+  }
+
+  function handleImmediateChange(
     field: keyof Draft,
     value: string | number | null,
+    mode: PriceMode,
   ) {
-    const updated = { ...draft, [field]: value };
-    onDraftChange(updated);
-    refreshPrice(updated);
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+    const updated = applyFieldUpdate(field, value);
+    refreshPrice(updated, mode);
+  }
+
+  function handleDebouncedChange(
+    field: keyof Draft,
+    value: string | number | null,
+    mode: PriceMode,
+  ) {
+    applyFieldUpdate(field, value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      refreshPrice(draftRef.current, mode);
+    }, DEBOUNCE_MS);
+  }
+
+  function handlePriceInputChange(value: string) {
+    const parsed = Number(value);
+    onDraftChange({
+      ...draftRef.current,
+      price: Number.isNaN(parsed) ? 0 : parsed,
+    });
+    setPriceSource("user");
+  }
+
+  function applyPendingPrice() {
+    if (!pendingPrice) return;
+    onDraftChange({
+      ...draftRef.current,
+      price: pendingPrice.price,
+      reasoning: pendingPrice.reasoning,
+    });
+    setPendingPrice(null);
+    setPriceSource("system");
   }
 
   const canContinue =
@@ -121,9 +248,8 @@ export default function EditDraftStep({
             <input
               value={draft.brand}
               onChange={(e) =>
-                onDraftChange({ ...draft, brand: e.target.value })
+                handleDebouncedChange("brand", e.target.value, "full")
               }
-              onBlur={() => refreshPrice(draft)}
               style={fieldStyle(!!draft.brand)}
             />
           </div>
@@ -132,9 +258,8 @@ export default function EditDraftStep({
             <input
               value={draft.model}
               onChange={(e) =>
-                onDraftChange({ ...draft, model: e.target.value })
+                handleDebouncedChange("model", e.target.value, "full")
               }
-              onBlur={() => refreshPrice(draft)}
               style={fieldStyle(!!draft.model)}
             />
           </div>
@@ -142,7 +267,9 @@ export default function EditDraftStep({
             <FieldLabel text="Tilstand" filled={!!draft.condition} />
             <select
               value={draft.condition}
-              onChange={(e) => handleFieldChange("condition", e.target.value)}
+              onChange={(e) =>
+                handleImmediateChange("condition", e.target.value, "full")
+              }
               disabled={adjusting}
               style={fieldStyle(!!draft.condition)}
             >
@@ -159,9 +286,10 @@ export default function EditDraftStep({
             <select
               value={draft.storage ?? ""}
               onChange={(e) =>
-                handleFieldChange(
+                handleImmediateChange(
                   "storage",
                   e.target.value ? Number(e.target.value) : null,
+                  "base",
                 )
               }
               disabled={adjusting}
@@ -184,12 +312,12 @@ export default function EditDraftStep({
               placeholder="f.eks. 91"
               value={draft.batteryHealth ?? ""}
               onChange={(e) =>
-                onDraftChange({
-                  ...draft,
-                  batteryHealth: e.target.value ? Number(e.target.value) : null,
-                })
+                handleDebouncedChange(
+                  "batteryHealth",
+                  e.target.value ? Number(e.target.value) : null,
+                  "base",
+                )
               }
-              onBlur={() => refreshPrice(draft)}
               style={fieldStyle(draft.batteryHealth !== null)}
             />
           </div>
@@ -217,15 +345,40 @@ export default function EditDraftStep({
               </div>
             )}
           </div>
-          <p
-            className="text-lg font-medium transition-opacity"
-            style={{ color: "#C4622E", opacity: adjusting ? 0.5 : 1 }}
+          <div
+            className="flex items-baseline gap-1.5 transition-opacity"
+            style={{ opacity: adjusting ? 0.5 : 1 }}
           >
-            {draft.price.toLocaleString("no")} kr
-          </p>
+            <input
+              value={String(draft.price)}
+              onChange={(e) => handlePriceInputChange(e.target.value)}
+              inputMode="numeric"
+              aria-label="Foreslått pris i kroner"
+              className="text-lg font-medium bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] rounded"
+              style={{ color: "#C4622E", width: "7ch" }}
+            />
+            <span className="text-lg font-medium" style={{ color: "#C4622E" }}>
+              kr
+            </span>
+          </div>
           <p className="text-xs mt-1" style={{ color: "#8A4A2E" }}>
-            {adjusting ? "Oppdaterer prisforslag..." : draft.reasoning}
+            {priceError
+              ? priceError
+              : adjusting
+                ? "Oppdaterer prisforslag..."
+                : draft.reasoning}
           </p>
+          {pendingPrice && (
+            <button
+              type="button"
+              onClick={applyPendingPrice}
+              className="text-xs mt-1.5 underline outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] rounded"
+              style={{ color: "#8A4A2E" }}
+            >
+              Bruk foreslått pris ({pendingPrice.price.toLocaleString("no")}{" "}
+              kr)
+            </button>
+          )}
         </div>
         <button
           onClick={onContinue}

@@ -96,3 +96,85 @@ siden beskrivelsen sjelden nevner det), at tomme felt har synlig
 aksentfarget kant, at "Fortsett" er synlig dempet og viser forklaringsteksten
 når f.eks. tilstand ikke er valgt, og at den lille spinneren ved "Foreslått
 pris" dukker opp når du endrer tilstand/lagring (uten å dekke prisen helt).
+
+## Rettet fra oppgave 2 — prisfeltet ble ved et uhell skrivebeskyttet
+
+I oppgave 2 skrev jeg om prisvisningen til en ren `<p>` (for å vise
+"Foreslått pris" ryddig), og glemte at det samtidig fjernet muligheten til å
+skrive inn pris manuelt — som fantes i originalkoden og som oppgave 3 er
+avhengig av. Rettet nå, som del av oppgave 3: pris er igjen et `<input>` (med
+"kr" som statisk tekst utenfor selve input-feltet, så formatering ikke
+kolliderer med tallparsing), og brukerens skriving setter `priceSource` til
+"user" (se under).
+
+## Oppgave 3 — Prisoppdatering (refreshPrice)
+
+**Hvorfor:** Hvert tastetrykk i merke/modell/batterihelse kalte `/api/adjust-
+price` på `onBlur` før (bare når du klikket ut av feltet, lett å glemme), og
+et sent svar fra et gammelt kall kunne overskrive et nyere hvis du endret
+flere felt raskt. Og en pris brukeren selv har skrevet inn ble stille
+overskrevet av neste automatiske oppdatering, som føles som om appen
+"spiser" det du nettopp skrev.
+
+Endringer i `EditDraftStep.tsx`:
+- **Debounce (600 ms):** merke, modell og batterihelse (tekstfelt) kaller nå
+  `refreshPrice` 600 ms etter siste tastetrykk, ikke på blur. En
+  `debounceRef`-timer nullstilles på hvert tastetrykk, og det debouncede
+  kallet leser alltid den NYESTE draften via `draftRef` (ikke en gammel
+  snapshot fra da timeren ble satt), så et felt du endret i mellomtiden ikke
+  går tapt.
+- **Umiddelbar oppdatering:** tilstand og lagring (dropdowns) kaller
+  `refreshPrice` med en gang, som før — og rydder samtidig bort en eventuell
+  ventende debounce-timer fra et tekstfelt, så den ikke dukker opp senere og
+  overskriver et friskere svar.
+- **AbortController:** ett delt `abortRef` avbryter forrige forespørsel hver
+  gang en ny startes, uansett hvilket felt som trigget den. Dermed er det
+  alltid kun det SISTE kallet som kan skrive til state — et sent svar fra et
+  utdatert kall kan aldri vinne over et nyere.
+- **basePrice/baseStorage/baseBatteryHealth:** endres merke, modell eller
+  tilstand, kalles ruten uten disse (fullt nytt forslag). Endres bare
+  lagring eller batterihelse, sendes de med fra `baselineRef` — en
+  "siste godkjente"-snapshot som KUN oppdateres når systemet selv foreslår en
+  ny pris (aldri når brukeren skriver et tall manuelt), nøyaktig som
+  beskrevet i oppgaven. **Se "Trenger endring i API" under** — selve ruten
+  bruker i dag ikke disse feltene til noe.
+- **Brukerskrevet pris overskrives ikke stille:** et prisfelt brukeren har
+  skrevet i (sporet med `priceSource`) gjør at en senere automatisk
+  prisoppdatering legges i `pendingPrice` i stedet for å skrive over
+  `draft.price`. Det vises som en lenke "Bruk foreslått pris (xxx kr)" under
+  prisen, som brukeren selv velger å trykke på.
+- **404 og andre feil:** 404 ("Ingen grunnlag") viser "Fant ikke grunnlag for
+  ny pris, juster selv" og beholder prisen. Andre feil (nettverksfeil,
+  500 osv.) beholder prisen uten noen feilmelding til brukeren, men logges
+  med `console.error`. En avbrutt forespørsel (`AbortError`) regnes ikke som
+  en feil og logges ikke.
+- **Validering:** batterihelse må være `null` eller et tall i intervallet
+  0–100 før noe kall gjøres (ugyldige verdier stopper kallet helt, i stedet
+  for å sende `NaN` til ruten). `basePrice` sendes kun når den faktisk er et
+  gyldig tall.
+
+**Bør sjekkes visuelt/manuelt:** skriv i modell-feltet og se at prisen ikke
+endrer seg før ca. 600ms etter du stopper å skrive (ikke ved hver bokstav,
+ikke bare ved blur). Bytt tilstand/lagring og se at prisen endrer seg med en
+gang. Skriv en egen pris manuelt, endre deretter tilstand — prisen din skal
+IKKE forsvinne, men en lenke "Bruk foreslått pris (...)" skal dukke opp under.
+Sett batterihelse til f.eks. 150 eller -5 og se at ingenting skjer (ingen
+nettverkskall, ingen krasj).
+
+## Trenger endring i API
+
+- **`/api/adjust-price`** tar i dag KUN imot `{ brand, model, condition,
+  storage, batteryHealth }` og kjører alltid samme Claude-kall, med en
+  systemprompt som er hardkodet til å anta at "lagring og batterihelse ER
+  ALLEREDE endret fra forrige forslag" — uansett om det faktisk er merke,
+  modell eller tilstand som endret seg. Ruten har ingen `basePrice`,
+  `baseStorage` eller `baseBatteryHealth`-parametre, og gjør derfor ingen
+  deterministisk uträkning fra en grunnlinje slik oppgaven beskriver.
+  Jeg sender disse feltene fra klienten likevel (se oppgave 3), siden de er
+  harmløse ekstra felt ruten ignorerer i dag, men den faktiske "regn
+  deterministisk ut fra basePrice"-oppførselen finnes ikke før ruten endres
+  til å: (1) ta imot `basePrice`/`baseStorage`/`baseBatteryHealth`, og (2)
+  gjøre en egen (eventuelt ren matematisk, ikke LLM-basert) uträkning når de
+  er satt, i stedet for alltid å kjøre samme "allerede endret"-prompt. Uten
+  denne endringen er "deterministisk"-kravet i praksis fortsatt en ny
+  Claude-vurdering hver gang, bare med litt mer kontekst i requesten.
