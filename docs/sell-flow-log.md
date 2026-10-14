@@ -178,3 +178,53 @@ nettverkskall, ingen krasj).
   er satt, i stedet for alltid å kjøre samme "allerede endret"-prompt. Uten
   denne endringen er "deterministisk"-kravet i praksis fortsatt en ny
   Claude-vurdering hver gang, bare med litt mer kontekst i requesten.
+
+## Oppgave 4 — Steg 3 (GenerateDescription)
+
+**Hvorfor:** Brukeren måtte selv trykke en knapp for å få en beskrivelse
+("✦ Generer beskrivelse") i stedet for å få den ferdig når de kommer til
+steget — ett ekstra, uforklart klikk. Og det var ingen oppsummering av HVA
+som faktisk publiseres, så steg 3 føltes løsrevet fra steg 1 og 2.
+
+Endringer:
+- Beskrivelsen genereres nå automatisk i en `useEffect` ved mount av steget
+  (kallet var der fra før, bare bak en knapp — nå kjøres det automatisk én
+  gang når brukeren kommer til steg 3).
+- Mens den genereres: `Skeleton`-blokk i tekstfeltets form + "Skriver
+  forslag..." med spinner, i stedet for et tomt felt.
+- Overskrift "Beskrivelse" og hjelpetekst "Vi har skrevet et forslag.
+  Rediger fritt, eller generer på nytt."
+- Knappen "Generer på nytt" erstatter "✦ Generer beskrivelse" (samme
+  funksjon, tydeligere tekst om hva som skjer — og ingen emoji, per
+  designprinsippet).
+- Feiler genereringen (kastet unntak, ikke bare dårlig JSON): feltet vises
+  tomt med teksten "Kunne ikke lage forslag. Skriv selv." i stedet for å
+  krasje eller vise `undefined`.
+- Ny oppsummeringsboks over beskrivelsen: første bilde (eller en tom
+  plassholder-boks hvis ingen bilde er lastet opp), merke + modell, lagring,
+  tilstand (norsk label) og pris.
+- "Publiser annonse" er `disabled` når beskrivelsen er tom, med forklarende
+  tekst under ("Skriv en beskrivelse før du kan publisere").
+
+**Publiseringsbugen vi fant i nettleseren (URL ble `/undefined`):** rettet
+som del av denne oppgaven, siden det er nøyaktig denne filens "hva skjer når
+jeg trykker"-ansvar. `publish()` sjekket aldri `res.ok` før den leste
+`listing.id` — når `/api/listings` svarer 401 ("Du må være innlogget") eller
+400, var responsen `{ error: "..." }` uten `id`, og
+`router.push('/annonse/undefined')` kjørte likevel. Nå: ved feil-status
+leses `error`-feltet fra svaret og vises over "Publiser annonse"-knappen
+(f.eks. "Du må være innlogget"), prisen/beskrivelsen beholdes, og ingen
+navigasjon skjer. Samtidig lagt til en `publishing`-state (knappen viser
+"Publiserer..." og er deaktivert mens kallet pågår, så dobbeltklikk ikke
+sender to annonser), og kalt `onPublish()` — som var sendt inn som prop men
+aldri faktisk kalt noe sted i originalkoden — rett før navigering, slik at
+`SellFlow` nullstiller flyten sin (ufarlig uansett siden navigeringen uansett
+fjerner komponenten, men riktig å faktisk bruke propen den fikk).
+
+**Bør sjekkes visuelt/manuelt:** gå til steg 3 og se at beskrivelsen dukker
+opp automatisk (skeleton + "Skriver forslag..." først), at oppsummeringsboksen
+viser riktig modell/lagring/tilstand/pris og første bilde, at "Generer på
+nytt" fungerer, og at "Publiser annonse" er dempet med forklaringstekst hvis
+du tømmer feltet helt. Test publisering både innlogget (skal navigere til
+annonsen) og uten å være innlogget (skal vise feilmelding, ikke navigere til
+`/undefined`).
