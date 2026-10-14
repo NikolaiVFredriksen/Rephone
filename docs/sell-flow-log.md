@@ -307,3 +307,66 @@ vise samme beskrivelse og bilder som du skrev. Fra steg 3, rediger
 beskrivelsen, trykk "Tilbake" til steg 2, endre noe der (f.eks. lagring, så
 prisen oppdaterer seg), og gå "Fortsett" til steg 3 igjen — den redigerte
 beskrivelsen skal fortsatt stå der, ikke bli byttet ut med et nytt forslag.
+
+## Slik henger salgsflyten sammen
+
+**Hver fil, og hvorfor den finnes:**
+
+- **`SellFlow.tsx`** — eier all state for hele flyten: beskrivelsesteksten
+  (`input`), bildene, utkastet (`draft`) og hvilket steg du er på (`step`).
+  Ingen av de andre komponentene har egen "sannhet" om disse — de får data
+  som props og melder endringer tilbake med `onDraftChange`/`onImagesChange`
+  osv. Det er derfor "Tilbake" (oppgave 6) er trygt: å bytte `step` fjerner
+  ikke noe av denne staten.
+- **`types.ts`** — definerer `Draft` på ett sted, importert av `SellFlow`,
+  `EditDraftStep` og `GenerateDescription`. Uten denne måtte formen på et
+  utkast holdes i hodet synkronisert mellom tre filer.
+- **`StepIndicator.tsx`** — ren visning av hvor i flyten du er (ikke
+  klikkbar, viser navn + hake/ring). Vet ingenting om hvordan steg byttes,
+  bare hvilket tall den får fra `SellFlow`.
+- **`ImageUploader.tsx`** — opplasting av opptil 3 bilder (bruker
+  `/api/upload`, en API-rute jeg ikke har rørt). Egen fil fordi
+  opplastingslogikken (feilhåndtering, spinner per slot) er egen og ikke
+  bør blande seg med steg-1-formen i `SellFlow`.
+- **`DraftSkeleton.tsx`** — ren visning som vises i `SellFlow` mens
+  `/api/price-suggestion` pågår, formet som steg-2-skjemaet (via den
+  generiske `Skeleton`-primitiven i `shared/`) så overgangen til det
+  virkelige skjemaet ikke hopper visuelt.
+- **`EditDraftStep.tsx`** — steg 2: viser og retter AI-utkastet. Eier sin
+  egen prisoppdateringslogikk (`refreshPrice`, debounce, AbortController,
+  baseline for siste godkjente pris) siden det er lokalt for dette steget og
+  ingen andre komponenter trenger å vite om det.
+- **`GenerateDescription.tsx`** — steg 3: genererer og viser
+  annonsebeskrivelsen (lagret på `draft.description`, ikke egen lokal
+  state — se oppgave 6), viser en oppsummering av annonsen, og publiserer
+  via `/api/listings`.
+
+**Fra beskrivelse til publisert annonse, i punkter:**
+
+1. Brukeren skriver en fritekstbeskrivelse (og ev. laster opp bilder) i
+   steg 1 og trykker "Lag annonseutkast" (krever minst 3 tegn).
+2. `SellFlow` kaller `/api/price-suggestion` med teksten. Mens den venter
+   vises `DraftSkeleton` + "Lager utkast...". Steg 2 vises ALDRI før svaret
+   er klart.
+3. Svaret (merke, modell, tilstand, batterihelse, lagring, foreslått pris og
+   begrunnelse) lagres som `draft`, og `step` settes til 2.
+4. I `EditDraftStep` ser brukeren utkastet med "Foreslått"/"Fyll inn"-
+   merkelapper per felt. Endrer de et felt, kalles `/api/adjust-price` på
+   nytt — debounced for tekstfelt, umiddelbart for dropdowns, alltid med
+   AbortController så bare siste svar vinner. Skriver brukeren inn en egen
+   pris manuelt, blir senere automatiske forslag liggende som en lenke
+   ("Bruk foreslått pris...") i stedet for å overskrive.
+5. Brukeren kan gå "Tilbake" til steg 1 (med teksten og bildene intakte) eller
+   trykke "Fortsett" til steg 3 — bare mulig når merke, modell, tilstand og
+   pris er satt.
+6. I `GenerateDescription` genereres en annonsetekst automatisk via
+   `/api/generate-description` og lagres på `draft.description`. En
+   oppsummering (bilde, modell, lagring, tilstand, pris) vises over
+   teksten. Brukeren kan redigere fritt, trykke "Generer på nytt", eller gå
+   "Tilbake" til steg 2 uten å tape den redigerte teksten (den ligger på
+   `draft`, ikke i komponentens egen state).
+7. Trykker brukeren "Publiser annonse" (krever ikke-tom beskrivelse), kaller
+   `GenerateDescription` `/api/listings`. Lykkes det, kalles `onPublish`
+   (nullstiller `SellFlow`) og brukeren sendes til `/annonse/[id]`. Feiler
+   det (f.eks. ikke innlogget), vises API-ens feilmelding og ingenting
+   nullstilles eller navigeres — brukeren kan rette feilen og trykke igjen.
