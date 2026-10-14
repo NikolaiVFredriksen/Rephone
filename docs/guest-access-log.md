@@ -79,3 +79,38 @@ til "Selg" uten å være innlogget, trykk "Fortsett som gjest". Forventet:
 knappen viser "Logger inn...", og salgsskjemaet dukker opp uten at siden
 laster på nytt (ingen hvit blink/full reload). Prøv også uten at
 miljøvariablene er satt — skal vise feiltekst, ikke krasje.
+
+## Oppgave 3 — Demo-bruker (seed-script)
+
+**Hvorfor:** Gjesteinnloggingen i oppgave 2 forutsetter at det faktisk
+finnes en bruker med e-post/passord fra `DEMO_USER_EMAIL`/
+`DEMO_USER_PASSWORD` i databasen. Uten et skript måtte denne brukeren
+opprettes manuelt hver gang, og lett ende opp med et passord som ikke
+matcher miljøvariabelen.
+
+Ny fil `prisma/seed-demo-user.ts`, etter samme mønster som
+`seed-reference-prices.ts` (egen `PrismaClient` med `PrismaPg`-adapter og
+`dotenv/config`, ikke appens delte `@/lib/prisma`, siden dette er et
+frittstående Node-skript utenfor Next.js). Hasher passordet med
+`bcrypt.hash(password, 10)` — nøyaktig samme kall som `/api/register`
+bruker. Bruker `prisma.user.upsert` på e-post, så scriptet er trygt å
+kjøre flere ganger (oppdaterer passordet i stedet for å lage en duplikat
+hvis det kjøres igjen med et nytt passord i miljøet).
+
+Kaster en tydelig feil (uten å skrive ut verdiene) hvis miljøvariablene
+ikke er satt, i stedet for å stille lage en bruker med `undefined` som
+passord.
+
+**Hvordan kjøre det:** `npx tsx prisma/seed-demo-user.ts` fra
+prosjektroten, med `DEMO_USER_EMAIL` og `DEMO_USER_PASSWORD` satt i
+`.env`/`.env.local` (eller i miljøet) sammen med `DATABASE_URL`. Jeg har
+IKKE kjørt dette scriptet selv — det ville krevd ekte miljøvariabler jeg
+ikke har, og skrevet til den faktiske databasen. Kjør det selv og bekreft
+at det skriver "Demo-bruker er klar." uten feil.
+
+**Må settes i Vercel (Project Settings → Environment Variables):**
+`DEMO_USER_EMAIL` og `DEMO_USER_PASSWORD` — begge for alle miljøer der
+gjesteinnlogging skal fungere (Production/Preview/Development etter
+behov). Kjør deretter seed-scriptet mot samme database (f.eks. via
+`vercel env pull` lokalt, eller kjør scriptet fra et miljø som har
+tilgang til produksjons-`DATABASE_URL`).
