@@ -1,0 +1,60 @@
+[
+  {
+    "id": "combo-battery-storage-budget",
+    "input": "iPhone under 4000kr, minst 80% batteri og 256GB",
+    "expected": {
+      "brand": "Apple",
+      "budget": 4000,
+      "minBatteryHealth": 80,
+      "minStorage": 256
+    }
+  },
+  {
+    "id": "battery-results",
+    "input": "iPhone med minst 85 prosent batteri",
+    "expected": { "brand": "Apple", "minBatteryHealth": 85 }
+  },
+  {
+    "id": "storage-tb",
+    "input": "iPhone med 1 TB lagring",
+    "expected": { "brand": "Apple", "minStorage": 1024 }
+  },
+  {
+    "id": "vague-good-battery",
+    "input": "billig samsung med godt batteri",
+    "expected": { "brand": "Samsung", "budget": null, "minBatteryHealth": 80 }
+  },
+  {
+    "id": "typo-brand",
+    "input": "Leter etter en Samsun med minst 128 gb, maks 2500 kr",
+    "expected": { "brand": "Samsung", "budget": 2500, "minStorage": 128 }
+  },
+  {
+    "id": "model-13",
+    "input": "iPhone 13",
+    "expected": { "brand": "Apple", "model": "iPhone 13" },
+    "onlyModelsContaining": ["iPhone 13"],
+    "minResults": 1
+  },
+  {
+    "id": "model-13-pro",
+    "input": "13 pro",
+    "expected": { "brand": "Apple", "model": "iPhone 13 Pro" },
+    "onlyModelsContaining": ["iPhone 13 Pro"],
+    "minResults": 1
+  },
+  {
+    "id": "model-without-brand",
+    "input": "Galaxy S24 under 5000",
+    "expected": { "brand": "Samsung", "model": "Galaxy S24", "budget": 5000 },
+    "onlyModelsContaining": ["Galaxy S24"],
+    "minResults": 1
+  },
+  {
+    "id": "xiaomi-13-not-iphone",
+    "input": "Xiaomi 13 under 3000",
+    "expected": { "brand": "Xiaomi", "model": "13", "budget": 3000 },
+    "onlyBrands": ["Xiaomi"],
+    "minResults": 1
+  }
+]

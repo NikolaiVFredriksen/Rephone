@@ -9,6 +9,9 @@ import type { Listing } from "../shared/ListingCard";
 type Filters = {
   budget?: number;
   brand?: string;
+  model?: string;
+  minBatteryHealth?: number;
+  minStorage?: number;
   priorities?: string[];
 };
 
@@ -91,7 +94,11 @@ export default function BuyFlow() {
 
       <div className="w-full max-w-3xl mt-12">
         {loading && (
-          <div role="status" aria-live="polite" className="text-center text-sm mb-6">
+          <div
+            role="status"
+            aria-live="polite"
+            className="text-center text-sm mb-6"
+          >
             <span aria-hidden="true" style={{ color: "#8A7A68" }}>
               Henter...
             </span>
@@ -101,11 +108,7 @@ export default function BuyFlow() {
         {error && <p className="text-center text-sm text-red-600">{error}</p>}
 
         <FilterChips filters={filters} />
-        {loading ? (
-          <ResultsGridSkeleton />
-        ) : (
-          <ResultsGrid results={results} />
-        )}
+        {loading ? <ResultsGridSkeleton /> : <ResultsGrid results={results} />}
       </div>
     </>
   );
