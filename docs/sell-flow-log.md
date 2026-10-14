@@ -228,3 +228,45 @@ nytt" fungerer, og at "Publiser annonse" er dempet med forklaringstekst hvis
 du tømmer feltet helt. Test publisering både innlogget (skal navigere til
 annonsen) og uten å være innlogget (skal vise feilmelding, ikke navigere til
 `/undefined`).
+
+## Oppgave 5 — Mobil (375px)
+
+**Hvorfor:** En fast piksel-bredde som er bredere enn 375px tvinger
+horisontal scroll på mobil — usynlig på en stor skjerm, men ødelegger
+opplevelsen på telefon, som er der folk faktisk selger telefoner fra.
+
+Gjennomgikk alle filer i `src/components/sell/` for faste bredder
+(`grep -n "width:\|w-\["` på hele mappen). Funn:
+- Bildeslottene i `ImageUploader.tsx` er faste 72px × 3 + mellomrom ≈ 240px —
+  trygt under 375px uansett padding.
+- Prisfeltets `input` i `EditDraftStep.tsx` bruker `width: "7ch"` (relativt
+  til font, ikke piksler) — trygt.
+- Alt annet (grid, textarea, bildeoppsummering, knapper) bruker `w-full`,
+  `max-w-*` eller ingen bredde satt (innhold styrer) — intet som kan sprenge
+  skjermen.
+- `StepIndicator` sin tre-sirkler-rad er omtrent 180–220px bred totalt — god
+  margin selv på 375px.
+
+**Fjernet en overflødig endring:** La til `px-4` på `SellFlow`s ytre
+wrapper i oppgave 1 "for sikkerhets skyld", men fant nå at foreldre-
+komponenten (`HomeContent.tsx`, utenfor det jeg får endre) allerede har
+`px-6` på `<main>` — konstant padding, ikke en fast bredde, så den er trygg
+på alle skjermstørrelser i seg selv. Min `px-4` var dermed bare dobbel,
+unødvendig innrykk og inkonsekvent med `BuyFlow` (som ikke har noe
+tilsvarende). Fjernet den igjen.
+
+**Eneste trange punkt, ikke en faktisk feil:** `FieldLabel` i
+`EditDraftStep.tsx` (label + "Foreslått"/"Fyll inn"-merkelapp,
+`justify-between` i samme rad) har ca. 137px tilgjengelig per kolonne på en
+375px-skjerm etter all padding. For det lengste feltet, "Batterihelse (%)",
+er det tightere enn andre felt. Flexbox lar label-teksten og merkelappen
+krympe/brytes i stedet for å sprenge bredden (ingen av dem har en fast
+bredde), så det blir aldri horisontal scroll — i verste fall ser det
+komprimert ut på en smal skjerm. Jeg endrer ikke layouten for dette, siden
+oppgaven spesifikt ber om å unngå det som "sprenger skjermen", ikke om perfekt
+linjeknekk på alle feltnavn.
+
+**Bør sjekkes visuelt:** åpne salgsflyten i DevTools med en 375px bredde
+(f.eks. "iPhone SE") og gå gjennom steg 1–3. Se spesielt på
+"Batterihelse (%)"-raden i steg 2 — merkelappen kan se trang ut, men skal
+ikke tvinge sidescroll noe sted.

@@ -62,7 +62,7 @@ export default function SellFlow() {
   }
 
   return (
-    <div className="w-full max-w-3xl mt-12 px-4">
+    <div className="w-full max-w-3xl mt-12">
       <StepIndicator step={step} />
       {step === 1 && !loading && (
         <div className="w-full max-w-2xl mx-auto text-center fade-in-up">
