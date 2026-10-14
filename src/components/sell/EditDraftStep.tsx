@@ -337,7 +337,7 @@ export default function EditDraftStep({
               style={{
                 color: "#C4622E",
                 width: `${Math.max(String(draft.price).length, 2) + 1}ch`,
-                background: "white",
+                background: "#FBF7F0",
                 border: "1px solid #C4622E",
                 borderRadius: 6,
                 padding: "1px 6px",

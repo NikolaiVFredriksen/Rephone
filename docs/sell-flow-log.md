@@ -198,6 +198,15 @@ er bare ingen beskyttelse mot at en senere automatisk oppdatering overskriver
 det igjen, siden det var nettopp den beskyttelsen som føltes unødvendig i
 bruk.
 
+## Rettelse — prisfeltets bakgrunn
+
+Hvit bakgrunn på prisfeltet stakk seg litt for mye ut mot resten av skjemaet,
+der alle andre felt bruker den samme dempede kremfargen (`#FBF7F0`) som
+bakgrunn. Byttet til samme farge, beholdt den aksentfargede kanten — feltet
+skiller seg fortsatt klart fra den rosa prisboksen det sitter i, men matcher
+nå resten av skjemaets inputs i stedet for å se ut som et eget avvikende
+element.
+
 ## Trenger endring i API
 
 - **`/api/adjust-price`** tar i dag KUN imot `{ brand, model, condition,
