@@ -73,11 +73,6 @@ export default function EditDraftStep({
   onBack,
 }: EditDraftStepProps) {
   const [adjusting, setAdjusting] = useState(false);
-  const [priceSource, setPriceSource] = useState<"system" | "user">("system");
-  const [pendingPrice, setPendingPrice] = useState<{
-    price: number;
-    reasoning: string;
-  } | null>(null);
   const [priceError, setPriceError] = useState("");
 
   const draftRef = useRef(draft);
@@ -92,8 +87,6 @@ export default function EditDraftStep({
   });
   const abortRef = useRef<AbortController | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const priceSourceRef = useRef(priceSource);
-  priceSourceRef.current = priceSource;
 
   useEffect(() => {
     return () => {
@@ -157,15 +150,11 @@ export default function EditDraftStep({
         batteryHealth: updated.batteryHealth,
       };
 
-      if (priceSourceRef.current === "user") {
-        setPendingPrice({ price: data.price, reasoning: data.reasoning ?? "" });
-      } else {
-        onDraftChange({
-          ...draftRef.current,
-          price: data.price,
-          reasoning: data.reasoning ?? draftRef.current.reasoning,
-        });
-      }
+      onDraftChange({
+        ...draftRef.current,
+        price: data.price,
+        reasoning: data.reasoning ?? draftRef.current.reasoning,
+      });
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") return;
       console.error("Kunne ikke oppdatere prisforslag:", err);
@@ -211,18 +200,6 @@ export default function EditDraftStep({
       ...draftRef.current,
       price: Number.isNaN(parsed) ? 0 : parsed,
     });
-    setPriceSource("user");
-  }
-
-  function applyPendingPrice() {
-    if (!pendingPrice) return;
-    onDraftChange({
-      ...draftRef.current,
-      price: pendingPrice.price,
-      reasoning: pendingPrice.reasoning,
-    });
-    setPendingPrice(null);
-    setPriceSource("system");
   }
 
   const canContinue =
@@ -377,17 +354,6 @@ export default function EditDraftStep({
                 ? "Oppdaterer prisforslag..."
                 : draft.reasoning}
           </p>
-          {pendingPrice && (
-            <button
-              type="button"
-              onClick={applyPendingPrice}
-              className="text-xs mt-1.5 underline outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] rounded"
-              style={{ color: "#8A4A2E" }}
-            >
-              Bruk foreslått pris ({pendingPrice.price.toLocaleString("no")}{" "}
-              kr)
-            </button>
-          )}
         </div>
         <div className="flex gap-2">
           <button

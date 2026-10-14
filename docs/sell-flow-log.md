@@ -138,11 +138,10 @@ Endringer i `EditDraftStep.tsx`:
   ny pris (aldri når brukeren skriver et tall manuelt), nøyaktig som
   beskrevet i oppgaven. **Se "Trenger endring i API" under** — selve ruten
   bruker i dag ikke disse feltene til noe.
-- **Brukerskrevet pris overskrives ikke stille:** et prisfelt brukeren har
-  skrevet i (sporet med `priceSource`) gjør at en senere automatisk
-  prisoppdatering legges i `pendingPrice` i stedet for å skrive over
-  `draft.price`. Det vises som en lenke "Bruk foreslått pris (xxx kr)" under
-  prisen, som brukeren selv velger å trykke på.
+- **Prisfeltet oppdateres direkte** når et nytt forslag kommer, uansett om
+  brukeren nettopp har skrevet en egen pris manuelt. (Opprinnelig plan var
+  en "Bruk foreslått pris"-lenke som måtte trykkes — fjernet etter
+  tilbakemelding, se egen seksjon under.)
 - **404 og andre feil:** 404 ("Ingen grunnlag") viser "Fant ikke grunnlag for
   ny pris, juster selv" og beholder prisen. Andre feil (nettverksfeil,
   500 osv.) beholder prisen uten noen feilmelding til brukeren, men logges
@@ -156,9 +155,10 @@ Endringer i `EditDraftStep.tsx`:
 **Bør sjekkes visuelt/manuelt:** skriv i modell-feltet og se at prisen ikke
 endrer seg før ca. 600ms etter du stopper å skrive (ikke ved hver bokstav,
 ikke bare ved blur). Bytt tilstand/lagring og se at prisen endrer seg med en
-gang. Skriv en egen pris manuelt, endre deretter tilstand — prisen din skal
-IKKE forsvinne, men en lenke "Bruk foreslått pris (...)" skal dukke opp under.
-Sett batterihelse til f.eks. 150 eller -5 og se at ingenting skjer (ingen
+gang. Skriv en egen pris manuelt, endre deretter tilstand — prisfeltet skal
+oppdatere seg direkte til det nye forslaget (se egen seksjon under for
+hvorfor dette endret seg fra den opprinnelige "lenke"-planen). Sett
+batterihelse til f.eks. 150 eller -5 og se at ingenting skjer (ingen
 nettverkskall, ingen krasj).
 
 ## Rettelse etter visuell sjekk — prisfeltet så ut som et hull
@@ -179,6 +179,24 @@ tilbakemelding viste. Rettet videre: input-feltet har nå hvit bakgrunn og
 full kant i aksentfarge (samme mønster som de andre feltene i skjemaet,
 bare i miniatyr), som skiller det klart fra den rosa boksen det sitter i —
 i stedet for å stole på en farge-på-samme-farge-detalj mange lett overser.
+
+## Endring etter tilbakemelding — fjernet "Bruk foreslått pris"-lenken
+
+**Hvorfor:** Oppgaveteksten sa opprinnelig at en brukerskrevet pris ikke
+skulle overskrives stille, og at en lenke ("Bruk foreslått pris (xxx kr)")
+skulle vises i stedet. I praksis ble dette en ekstra forsinkelse: prisen er
+allerede automatisk satt til forslaget fra start, og ønsket var at selve
+prisfeltet oppdaterer seg direkte når systemet regner ut et nytt forslag
+(f.eks. etter å ha endret tilstand eller lagring) — ikke at brukeren må
+trykke en egen lenke for å få den inn.
+
+Fjernet `priceSource`/`pendingPrice`-sporingen og lenken helt. Nå skriver
+`refreshPrice` alltid det nye forslaget direkte til `draft.price`, uansett
+om brukeren nettopp har skrevet inn en egen pris manuelt. Brukeren kan
+fortsatt overstyre prisen når de vil (feltet er fortsatt redigerbart) — det
+er bare ingen beskyttelse mot at en senere automatisk oppdatering overskriver
+det igjen, siden det var nettopp den beskyttelsen som føltes unødvendig i
+bruk.
 
 ## Trenger endring i API
 
@@ -372,9 +390,9 @@ beskrivelsen skal fortsatt stå der, ikke bli byttet ut med et nytt forslag.
 4. I `EditDraftStep` ser brukeren utkastet med "Foreslått"/"Fyll inn"-
    merkelapper per felt. Endrer de et felt, kalles `/api/adjust-price` på
    nytt — debounced for tekstfelt, umiddelbart for dropdowns, alltid med
-   AbortController så bare siste svar vinner. Skriver brukeren inn en egen
-   pris manuelt, blir senere automatiske forslag liggende som en lenke
-   ("Bruk foreslått pris...") i stedet for å overskrive.
+   AbortController så bare siste svar vinner — og prisfeltet oppdateres
+   direkte til det nye forslaget. Brukeren kan skrive inn en egen pris selv
+   hvis de ikke er fornøyd med forslaget.
 5. Brukeren kan gå "Tilbake" til steg 1 (med teksten og bildene intakte) eller
    trykke "Fortsett" til steg 3 — bare mulig når merke, modell, tilstand og
    pris er satt.
