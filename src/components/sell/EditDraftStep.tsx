@@ -357,7 +357,12 @@ export default function EditDraftStep({
               inputMode="numeric"
               aria-label="Foreslått pris i kroner"
               className="text-lg font-medium bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] rounded"
-              style={{ color: "#C4622E", width: "7ch" }}
+              style={{
+                color: "#C4622E",
+                width: `${Math.max(String(draft.price).length, 2)}ch`,
+                borderBottom: "1px dashed #C4622E",
+                paddingBottom: 1,
+              }}
             />
             <span className="text-lg font-medium" style={{ color: "#C4622E" }}>
               kr

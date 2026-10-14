@@ -161,6 +161,21 @@ IKKE forsvinne, men en lenke "Bruk foreslått pris (...)" skal dukke opp under.
 Sett batterihelse til f.eks. 150 eller -5 og se at ingenting skjer (ingen
 nettverkskall, ingen krasj).
 
+## Rettelse etter visuell sjekk — prisfeltet så ut som et hull
+
+**Hvorfor:** Prisinputen hadde fast bredde (`7ch`, nok plass til 7 siffer)
+men ingen synlig kant eller bakgrunn. For en kortere pris (f.eks. 4 siffer)
+ble resten av de 7 tegn-bredde stående som tomt rom før "kr" — et "fysisk
+hull" i layouten, uten noe visuelt som sier "dette er et felt du kan skrive
+i".
+
+Rettet: bredden regnes nå ut fra faktisk antall siffer i prisen
+(`${String(draft.price).length}ch`, minimum 2), så det ikke blir overflødig
+tomrom. Lagt til en stiplet understreking (`border-bottom: 1px dashed
+#C4622E`) som alltid er synlig, ikke bare ved fokus — en lett, konsekvent
+måte å signalisere "dette er redigerbart" på, uten en tung boks-kant som
+ville sett unaturlig ut inni den allerede fargede prisboksen.
+
 ## Trenger endring i API
 
 - **`/api/adjust-price`** tar i dag KUN imot `{ brand, model, condition,
