@@ -5,7 +5,15 @@ type Filters = {
   model?: string;
   minBatteryHealth?: number;
   minStorage?: number;
+  conditions?: string[];
   priorities?: string[];
+};
+
+const CONDITION_LABELS: Record<string, string> = {
+  NY: "Ny",
+  PENT_BRUKT: "Pent brukt",
+  BRUKT: "Brukt",
+  GODT_BRUKT: "Godt brukt",
 };
 
 type FilterChipsProps = {
@@ -53,6 +61,15 @@ export default function FilterChips({ filters }: FilterChipsProps) {
           {filters.model}
         </span>
       )}
+      {filters.conditions?.map((c) => (
+        <span
+          key={c}
+          className="text-xs px-3 py-1 rounded-full"
+          style={{ background: "#F3DCD1", color: "#8A4A2E" }}
+        >
+          {CONDITION_LABELS[c] ?? c}
+        </span>
+      ))}
       {filters.minBatteryHealth && (
         <span
           className="text-xs px-3 py-1 rounded-full"

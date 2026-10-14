@@ -29,6 +29,7 @@ type Listing = {
   brand: string;
   model: string;
   price: number;
+  condition: string;
   batteryHealth: number | null;
   storage: number | null;
 };
@@ -72,6 +73,15 @@ function filterViolations(l: Listing, f: Record<string, unknown>): string[] {
   }
   if (f.minStorage && (l.storage ?? 0) < Number(f.minStorage)) {
     v.push(`lagring ${l.storage}, ønsket minst ${f.minStorage}`);
+  }
+  if (
+    Array.isArray(f.conditions) &&
+    f.conditions.length > 0 &&
+    !f.conditions.some(
+      (c) => String(c).toLowerCase() === l.condition.toLowerCase(),
+    )
+  ) {
+    v.push(`tilstand ${l.condition}, ønsket en av ${f.conditions.join(", ")}`);
   }
   return v;
 }

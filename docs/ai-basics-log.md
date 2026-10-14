@@ -119,7 +119,26 @@ ikke justering av fasit for å få en test til å bestå.
 **Eval etter punkt 3: 21/22** (opp fra 16/17). Dette brukte 2 evalkjøringer
 istedenfor 1 pga. rettingen over — se budsjettnotatet øverst.
 
-## Punkt 4–8
+## Punkt 4 — Tilstand (conditions)
+
+**Hvorfor:** "Som ny" og "pent brukt" er noe av det folk bruker mest for å
+luke ut dårlige eksemplarer, men søket hadde ingen kobling til `condition`
+i databasen i det hele tatt.
+
+La til `conditions` (liste) i prompten med explisitte mapninger: "som ny" →
+`["NY","PENT_BRUKT"]`, "pent brukt" → `["PENT_BRUKT"]`, "godt brukt" →
+`["GODT_BRUKT"]`, "ny"/"helt ny" → `["NY"]`. Bare "brukt" alene gir `null` —
+for vagt, siden alt på en bruktmarkedsplass er brukt i vid forstand.
+
+Validerer verdiene AI-en returnerer mot `Object.values(Condition)` (det ekte
+enumet fra Prisma) før de brukes i `where`, slik at en ugyldig eller
+hallusinert verdi fra modellen aldri når databasen — den filtreres bare bort
+i stedet for å krasje spørringen. Viser norske chips per tilstand ("Pent
+brukt", "Godt brukt", osv.) i stedet for de tekniske enum-navnene.
+
+**Eval etter punkt 4: 25/26** (opp fra 21/22).
+
+## Punkt 5–8
 
 (fylles ut fortløpende)
 

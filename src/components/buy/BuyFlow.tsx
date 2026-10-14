@@ -13,6 +13,7 @@ type Filters = {
   model?: string;
   minBatteryHealth?: number;
   minStorage?: number;
+  conditions?: string[];
   priorities?: string[];
 };
 

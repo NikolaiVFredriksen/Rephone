@@ -137,5 +137,39 @@
     "input": "telefon fra fire tusen kroner",
     "expected": { "minPrice": 4000 },
     "minResults": 1
+  },
+  {
+    "id": "condition-like-new",
+    "input": "iPhone 16 Pro som ny",
+    "expected": {
+      "brand": "Apple",
+      "model": "iPhone 16 Pro",
+      "conditions": ["NY", "PENT_BRUKT"]
+    },
+    "onlyModelsContaining": ["iPhone 16 Pro"],
+    "minResults": 1
+  },
+  {
+    "id": "condition-pent-brukt",
+    "input": "pent brukt Galaxy S24",
+    "expected": {
+      "brand": "Samsung",
+      "model": "Galaxy S24",
+      "conditions": ["PENT_BRUKT"]
+    },
+    "onlyModelsContaining": ["Galaxy S24"],
+    "minResults": 1
+  },
+  {
+    "id": "condition-godt-brukt",
+    "input": "godt brukt iPhone",
+    "expected": { "brand": "Apple", "conditions": ["GODT_BRUKT"] },
+    "onlyBrands": ["Apple"],
+    "minResults": 1
+  },
+  {
+    "id": "condition-vague-unclear",
+    "input": "brukt telefon",
+    "expected": { "conditions": null }
   }
 ]
