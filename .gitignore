@@ -42,3 +42,4 @@ next-env.d.ts
 .neon
 
 /src/generated/prisma
+annonser/
