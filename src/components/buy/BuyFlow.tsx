@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FilterChips from "./FilterChips";
 import ResultsGrid from "../shared/ResultsGrid";
 import ResultsGridSkeleton from "../shared/ResultsGridSkeleton";
@@ -19,7 +19,11 @@ type Filters = {
   unsupported?: string[];
 };
 
-export default function BuyFlow() {
+export default function BuyFlow({
+  onResultsChange,
+}: {
+  onResultsChange?: (count: number) => void;
+}) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -29,6 +33,11 @@ export default function BuyFlow() {
   const [total, setTotal] = useState(0);
   const [lastQuery, setLastQuery] = useState("");
   const [loadingMore, setLoadingMore] = useState(false);
+
+  // Gir HomeContent beskjed om det finnes resultater, så footeren kan vises der.
+  useEffect(() => {
+    onResultsChange?.(results.length);
+  }, [results.length, onResultsChange]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

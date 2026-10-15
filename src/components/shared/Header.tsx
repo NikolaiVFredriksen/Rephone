@@ -14,12 +14,12 @@ export default async function Header() {
       className="w-full px-6 py-6 sticky top-0 z-10"
     >
       <div className="flex justify-between items-center max-w-3xl mx-auto">
-        <Link
+        <a
           href="/"
           className="text-lg font-medium text-[#3A2E22] transition-colors hover:text-[#C4622E] outline-none focus-visible:ring-2 focus-visible:ring-[#C4622E] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FBF7F0] rounded-sm"
         >
           Rephone
-        </Link>
+        </a>
 
         {session?.user ? (
           <div className="flex items-center gap-3">
