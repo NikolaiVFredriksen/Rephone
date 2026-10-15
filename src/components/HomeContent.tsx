@@ -5,10 +5,11 @@ import BuySellToggle from "./shared/BuySellToggle";
 import Hero from "./shared/Hero";
 import BuyFlow from "./buy/BuyFlow";
 import SellFlow from "./sell/SellFlow";
+import SellGate from "./sell/SellGate";
 
 type Mode = "kjop" | "selg";
 
-export default function HomeContent() {
+export default function HomeContent({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [mode, setMode] = useState<Mode>("kjop");
 
   return (
@@ -20,7 +21,13 @@ export default function HomeContent() {
         >
           <BuySellToggle mode={mode} onChange={setMode} />
           <div className="w-full flex flex-col items-center">
-            {mode === "kjop" ? <BuyFlow /> : <SellFlow />}
+            {mode === "kjop" ? (
+              <BuyFlow />
+            ) : isLoggedIn ? (
+              <SellFlow />
+            ) : (
+              <SellGate />
+            )}
           </div>
         </div>
       </div>
